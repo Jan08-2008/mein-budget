@@ -405,6 +405,9 @@ nav.tabs .ti svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-wid
 .dm-mob{display:none}
 .pdf-page{display:block;width:100%;height:auto;margin:0 auto 12px;background:#fff;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .doc-pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;max-height:70vh;overflow:auto}
+.enc-card h2{margin-bottom:8px}
+.enc-row{display:flex;gap:8px;flex-wrap:wrap}.enc-row .inp{flex:1;min-width:200px}
+.docs-head .sync{font-size:12px}
 .lock-card{max-width:360px;margin:40px auto;text-align:center;display:grid;gap:8px;justify-items:center}
 .pin-in{text-align:center;font-size:22px;letter-spacing:.4em;max-width:220px}
 .narrow-only{display:none!important}
@@ -1990,7 +1993,8 @@ function viewSettings() {
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" data-act="cats-open">Kategorien verwalten</button><button class="btn small" data-act="acc-edit">Kontostände abgleichen</button><button class="btn small" data-act="tab" data-tab="acc">TWINT-Kontakte</button></div>
     </div>
     <div class="card"><h2>☁️ Synchronisation</h2>
-      ${SB_USER ? `<p class="small" style="margin:0 0 8px">Angemeldet als <b>${esc(SB_USER.email || '')}</b> – PC und iPhone werden abgeglichen.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${cfg && !cfg.fromFile ? '<button class="btn small" data-act="sync-code">📲 Code fürs iPhone</button>' : ''}<button class="btn small" data-act="lg-logout">Abmelden</button>${cfg && !cfg.fromFile ? '<button class="btn small danger" data-act="sync-reset">Verbindung entfernen</button>' : ''}</div>`
+      ${SB_USER ? `<p class="small" style="margin:0 0 8px">Angemeldet als <b>${esc(SB_USER.email || '')}</b> – PC und iPhone werden abgeglichen.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${cfg && !cfg.fromFile ? '<button class="btn small" data-act="sync-code">📲 Code fürs iPhone</button>' : ''}<button class="btn small" data-act="lg-logout">Abmelden</button>${cfg && !cfg.fromFile ? '<button class="btn small danger" data-act="sync-reset">Verbindung entfernen</button>' : ''}</div>
+        <p class="small muted" style="margin:12px 0 6px">🔐 Dokumente: ${ENC.key ? 'auf diesem Gerät freigeschaltet (verschlüsselt synchron).' : 'noch nicht freigeschaltet – unter «Dokumente» einrichten.'}</p>${ENC.key ? '<button class="btn small" data-act="enc-forget">Dokumenten-Schlüssel auf diesem Gerät entfernen</button>' : ''}`
         : cfg ? `<p class="small muted" style="margin:0 0 8px">Eingerichtet, aber nicht angemeldet.</p><button class="btn small primary" data-act="lg-open">Anmelden</button>` : `<p class="small muted" style="margin:0 0 8px">Daten nur auf diesem Gerät.</p><button class="btn small primary" data-act="sync-setup">Sync einrichten</button>`}
     </div>
     <div class="card"><h2>💾 Daten</h2>
@@ -2631,6 +2635,7 @@ function supaCollection(client, uid) {
 }
 function startSync(user) {
   SB_USER = user; try { applyPrefs(); } catch (e) {}
+  setTimeout(() => docsCloudInit().catch(e => console.error(e)), 300);
   CLOUD.col = supaCollection(SB, user.id);
   setSync('loading');
   const timer = setTimeout(() => { if (!CLOUD.ready) setSync('offline'); }, 10000);
@@ -2786,16 +2791,179 @@ async function loadDocs() {
   } catch (e) { console.error(e); toast('⚠️ Dokumentenspeicher nicht verfügbar (privates Fenster?)'); }
   DOCS.loaded = true;
 }
+// Sync-Felder (nur lokal): synced = Angaben hochgeladen, blobUp = Datei hochgeladen, rUpdated = Stand in der Cloud
 async function putDoc(meta, blob) {
+  meta = {...meta, synced: false, blobUp: false};
   await dbWrite('blobs', st => st.put(blob, meta.id));
   await dbWrite('meta', st => st.put(meta));
   DOCS.list = DOCS.list.filter(d => d.id !== meta.id).concat(meta);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  docsSyncSoon();
 }
-async function updateDoc(meta) { await dbWrite('meta', st => st.put(meta)); DOCS.list = DOCS.list.map(d => d.id === meta.id ? meta : d); }
-async function removeDoc(id) { await dbWrite('meta', st => st.delete(id)); await dbWrite('blobs', st => st.delete(id)); DOCS.list = DOCS.list.filter(d => d.id !== id); DOCS.sel.delete(id); }
-async function docBlob(id) { return dbGet('blobs', id); }
+async function updateDoc(meta) { meta = {...meta, synced: false}; await dbWrite('meta', st => st.put(meta)); DOCS.list = DOCS.list.map(d => d.id === meta.id ? meta : d); docsSyncSoon(); }
+async function removeDoc(id, localOnly) {
+  const d = DOCS.list.find(x => x.id === id);
+  await dbWrite('meta', st => st.delete(id)); await dbWrite('blobs', st => st.delete(id)); DOCS.list = DOCS.list.filter(x => x.id !== id); DOCS.sel.delete(id);
+  if (!localOnly && d && (d.synced || d.blobUp)) { const pd = (await dbGet('kv', 'pendingDeletes')) || []; pd.push(id); await dbWrite('kv', st => st.put(pd, 'pendingDeletes')); docsSyncSoon(); }
+}
+async function docBlob(id) {
+  const local = await dbGet('blobs', id); if (local) return local;
+  const d = DOCS.list.find(x => x.id === id);
+  if (d && d.blobUp && ENC.key && SB && SB_USER) { // nur in der Cloud → holen, entschlüsseln, zwischenspeichern
+    const {data, error} = await SB.storage.from(DOC_BUCKET).download(`${SB_USER.id}/${id}.bin`);
+    if (error) throw error;
+    const blob = new Blob([await decBytes(ENC.key, new Uint8Array(await data.arrayBuffer()))], {type: d.mime || MIME[d.ext] || 'application/octet-stream'});
+    await dbWrite('blobs', st => st.put(blob, id)); return blob;
+  }
+  return null;
+}
 async function saveFolders() { await dbWrite('kv', st => st.put(DOCS.folders, 'folders')); }
+
+/* ---- Verschlüsselte Synchronisation der Dokumente (Supabase Storage) ----
+   Passwort --PBKDF2 (310'000 Runden, SHA-256)--> AES-256-GCM-Schlüssel. Jede Datei und ihre Angaben werden
+   auf dem Gerät verschlüsselt; in der Cloud liegt nur Datensalat. Das Passwort wird nie gespeichert –
+   jedes Gerät merkt sich nur den abgeleiteten Schlüssel (nicht auslesbar) in seinem lokalen Speicher. */
+const DOC_BUCKET = 'dokumente';
+const ENC = {key: null, remote: null, busy: false, again: false, state: '', err: '', later: false, checked: false};
+const te8 = new TextEncoder(), td8 = new TextDecoder();
+const toB64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s); };
+const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKey(pw, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', te8.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256'}, base, {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
+}
+async function encBytes(key, bytes) { const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv}, key, bytes)); const out = new Uint8Array(13 + ct.length); out[0] = 1; out.set(iv, 1); out.set(ct, 13); return out; }
+async function decBytes(key, u8) { if (u8[0] !== 1) throw new Error('Unbekanntes Format'); return new Uint8Array(await crypto.subtle.decrypt({name: 'AES-GCM', iv: u8.slice(1, 13)}, key, u8.slice(13))); }
+const CHECK_TXT = 'mein-budget-dokumente-ok';
+const stripLocal = d => { const {synced, blobUp, rUpdated, ...m} = d; return m; };
+function setDocSync(s, err) { ENC.state = s; ENC.err = err || ''; const el = $('#docsync'); if (el) el.outerHTML = docSyncChip(); }
+function docSyncChip() {
+  if (!ENC.key) return '<span id="docsync"></span>';
+  const m = {saving: ['saving', 'gleicht ab …'], ok: ['ok', 'verschlüsselt synchron'], err: ['err', 'Abgleich fehlgeschlagen'], '': ['', 'verschlüsselt']}[ENC.state] || ['', ''];
+  return `<span id="docsync" class="sync ${m[0]}" title="${esc(ENC.err || 'Dokumente sind verschlüsselt und auf allen deinen Geräten verfügbar')}"><i></i><span style="display:inline">🔐 ${m[1]}</span></span>`;
+}
+async function encKeyLoad() {
+  if (!SB_USER) return;
+  try { const k = await dbGet('kv', 'enckey'), u = await dbGet('kv', 'encuid'); ENC.key = k && u === SB_USER.id ? k : null; } catch (e) { ENC.key = null; }
+}
+async function checkRemoteKey() {
+  if (!SB || !SB_USER) return null;
+  const {data, error} = await SB.storage.from(DOC_BUCKET).download(`${SB_USER.id}/keycheck.json`);
+  if (error) { if (/not.?found|404|object/i.test(error.message || '') && !/bucket/i.test(error.message || '')) return ENC.remote = false; if (/bucket/i.test(error.message || '')) { ENC.err = 'bucket'; return ENC.remote = null; } throw error; }
+  return ENC.remote = JSON.parse(await data.text());
+}
+let _docSyncT = null;
+function docsSyncSoon(ms = 800) { if (!ENC.key || !SB_USER) return; clearTimeout(_docSyncT); _docSyncT = setTimeout(() => docsSyncNow(), ms); }
+async function docsSyncNow() {
+  if (!SB || !SB_USER || !ENC.key) return;
+  if (ENC.busy) { ENC.again = true; return; }
+  ENC.busy = true; setDocSync('saving'); let changed = false;
+  try {
+    await loadDocs();
+    const uid = SB_USER.id, st = SB.storage.from(DOC_BUCKET);
+    // 1) Löschungen nachholen
+    const pd = (await dbGet('kv', 'pendingDeletes')) || [];
+    if (pd.length) { const {error} = await st.remove(pd.flatMap(id => [`${uid}/${id}.meta`, `${uid}/${id}.bin`])); if (error) throw error; await dbWrite('kv', s => s.put([], 'pendingDeletes')); }
+    // 2) Cloud-Liste
+    const remote = []; for (let off = 0; ; off += 1000) { const {data, error} = await st.list(uid, {limit: 1000, offset: off}); if (error) throw error; remote.push(...(data || [])); if (!data || data.length < 1000) break; }
+    const rMeta = new Map(remote.filter(o => o.name.endsWith('.meta')).map(o => [o.name.slice(0, -5), o.updated_at || o.created_at || '']));
+    pd.forEach(id => rMeta.delete(id));
+    // 3) Lokale Änderungen hochladen
+    const uploaded = new Set();
+    for (const d of DOCS.list.filter(x => !x.synced)) {
+      if (!d.blobUp) { const blob = await dbGet('blobs', d.id); if (!blob) continue;
+        const {error} = await st.upload(`${uid}/${d.id}.bin`, new Blob([await encBytes(ENC.key, new Uint8Array(await blob.arrayBuffer()))]), {upsert: true, contentType: 'application/octet-stream'}); if (error) throw error; }
+      const {error} = await st.upload(`${uid}/${d.id}.meta`, new Blob([await encBytes(ENC.key, te8.encode(JSON.stringify(stripLocal(d))))]), {upsert: true, contentType: 'application/octet-stream'}); if (error) throw error;
+      const m = {...d, synced: true, blobUp: true, rUpdated: new Date().toISOString()}; await dbWrite('meta', s => s.put(m)); DOCS.list = DOCS.list.map(x => x.id === m.id ? m : x); uploaded.add(d.id);
+    }
+    // 4) Neues / Geändertes von anderen Geräten holen (nur die Angaben – Dateien erst beim Öffnen)
+    for (const [id, rU] of rMeta) {
+      if (uploaded.has(id)) continue;
+      const local = DOCS.list.find(x => x.id === id);
+      if (local && (!local.synced || (local.rUpdated && rU && rU <= local.rUpdated))) continue;
+      const {data, error} = await st.download(`${uid}/${id}.meta`); if (error) throw error;
+      const meta = JSON.parse(td8.decode(await decBytes(ENC.key, new Uint8Array(await data.arrayBuffer()))));
+      const m = {...meta, id, synced: true, blobUp: true, rUpdated: rU || new Date().toISOString()};
+      await dbWrite('meta', s => s.put(m)); DOCS.list = DOCS.list.filter(x => x.id !== id).concat(m); changed = true;
+    }
+    // 5) Auf einem anderen Gerät gelöscht → hier auch entfernen
+    for (const d of DOCS.list.filter(x => x.synced && !rMeta.has(x.id) && !uploaded.has(x.id))) { await removeDoc(d.id, true); changed = true; }
+    setDocSync('ok');
+  } catch (e) {
+    console.error(e);
+    const msg = e && e.message || String(e);
+    setDocSync('err', /bucket/i.test(msg) ? 'Dateispeicher fehlt: Skript supabase-dokumente.sql in Supabase ausführen' : /decrypt|operation/i.test(msg) ? 'Entschlüsseln fehlgeschlagen – falsches Passwort?' : msg);
+    if (/bucket/i.test(msg)) ENC.err = 'bucket';
+  } finally {
+    ENC.busy = false;
+    if (changed && UI.tab === 'docs') render();
+    if (ENC.again) { ENC.again = false; docsSyncSoon(300); }
+  }
+}
+async function docsCloudInit() { // nach dem Anmelden
+  await encKeyLoad();
+  if (ENC.key) { await loadDocs(); docsSyncNow(); }
+  if (UI.tab === 'docs') render();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && ENC.key) docsSyncSoon(200); });
+function encCard() {
+  if (!SB_USER) return supaConfig() ? '<div class="note blue" style="margin:0">☁️ Melde dich an, damit deine Dokumente verschlüsselt auf allen Geräten verfügbar sind.</div>' : '';
+  if (ENC.key) return ENC.err === 'bucket' ? `<div class="note red" style="margin:0">⚠️ Der Dateispeicher in Supabase fehlt noch. Führe einmal das Skript <b>supabase-dokumente.sql</b> im SQL Editor aus (siehe Anleitung), dann <a href="#" data-act="enc-retry">erneut versuchen</a>.</div>` : '';
+  if (ENC.later) return '';
+  if (!ENC.checked) { ENC.checked = true; checkRemoteKey().catch(e => { console.error(e); ENC.err = /bucket/i.test(e.message || '') ? 'bucket' : (e.message || 'Fehler'); }).finally(() => { if (UI.tab === 'docs') render(); }); return '<div class="card"><p class="muted small" style="margin:0">☁️ Prüfe Dokumenten-Verschlüsselung …</p></div>'; }
+  if (ENC.err === 'bucket') return `<div class="note red" style="margin:0">⚠️ Für Dokumente auf allen Geräten fehlt in Supabase noch der Dateispeicher. Führe einmal das Skript <b>supabase-dokumente.sql</b> im SQL Editor aus (siehe Anleitung), dann <a href="#" data-act="enc-retry">erneut versuchen</a>.</div>`;
+  if (ENC.remote) return `<div class="card enc-card"><h2>🔐 Dokumente auf diesem Gerät freischalten</h2>
+      <p class="small muted" style="margin-top:0">Deine Dokumente sind verschlüsselt gespeichert. Gib einmal dein <b>Dokumenten-Passwort</b> ein – danach merkt sich dieses Gerät den Schlüssel, und im Alltag reicht die PIN.</p>
+      <div class="enc-row"><input class="inp" type="password" id="enc-pw" placeholder="Dokumenten-Passwort" autocomplete="current-password" data-enter="enc-unlock"><button class="btn primary" data-act="enc-unlock">Freischalten</button></div>
+      <div id="enc-msg" class="small" style="min-height:18px;margin-top:6px"></div>
+      <a href="#" class="small muted" data-act="enc-later">Später</a></div>`;
+  if (ENC.remote === false) return `<div class="card enc-card"><h2>☁️🔐 Dokumente auf allen Geräten</h2>
+      <p class="small" style="margin-top:0">Lege ein <b>Dokumenten-Passwort</b> fest. Damit werden alle Dokumente auf deinem Gerät verschlüsselt, bevor sie in deine Supabase hochgeladen werden – niemand ausser dir kann sie lesen. Auf dem Handy gibst du das Passwort einmal ein und siehst dann alles.</p>
+      <div class="grid g2" style="gap:10px"><label class="f">Passwort (mind. 10 Zeichen)<input class="inp" type="password" id="enc-new" autocomplete="new-password"></label><label class="f">Passwort wiederholen<input class="inp" type="password" id="enc-new2" autocomplete="new-password"></label></div>
+      <div class="note orange">⚠️ <b>Schreib das Passwort auf</b> und bewahre es sicher auf. Ohne Passwort können die Dokumente <b>nicht</b> wiederhergestellt werden – auch nicht von Supabase oder Claude.</div>
+      <label class="small" style="display:flex;gap:8px;align-items:center;margin:10px 0"><input type="checkbox" id="enc-ok"> Ich habe das Passwort aufgeschrieben.</label>
+      <div id="enc-msg" class="small" style="min-height:18px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="enc-setup">Verschlüsselung einrichten</button><button class="btn" data-act="enc-later">Später</button></div></div>`;
+  return ENC.err ? `<div class="note red" style="margin:0">⚠️ Dokumenten-Abgleich nicht möglich: ${esc(ENC.err)} · <a href="#" data-act="enc-retry">erneut versuchen</a></div>` : '';
+}
+Object.assign(ACT, {
+  'enc-later': () => { ENC.later = true; render(); },
+  'enc-retry': () => { ENC.checked = false; ENC.err = ''; ENC.remote = null; render(); if (ENC.key) docsSyncNow(); },
+  'enc-setup': async () => {
+    const a = $('#enc-new').value, b = $('#enc-new2').value, msg = h => { $('#enc-msg').innerHTML = '<span class="neg">' + h + '</span>'; };
+    if (a.length < 10) return msg('Bitte mindestens 10 Zeichen (z. B. ein kurzer Satz).');
+    if (a !== b) return msg('Die beiden Passwörter stimmen nicht überein.');
+    if (!$('#enc-ok').checked) return msg('Bitte bestätige, dass du das Passwort aufgeschrieben hast.');
+    try {
+      $('#enc-msg').textContent = 'Schlüssel wird erzeugt …';
+      const remote = await checkRemoteKey(); if (remote) { ENC.checked = true; render(); return toast('Auf einem anderen Gerät wurde schon ein Passwort festgelegt – bitte dieses eingeben.', 6000); }
+      const salt = crypto.getRandomValues(new Uint8Array(16)), iter = 310000;
+      const key = await deriveKey(a, salt, iter);
+      const kc = {v: 1, salt: toB64(salt), iter, check: toB64(await encBytes(key, te8.encode(CHECK_TXT)))};
+      const {error} = await SB.storage.from(DOC_BUCKET).upload(`${SB_USER.id}/keycheck.json`, new Blob([JSON.stringify(kc)], {type: 'application/json'}), {upsert: false, contentType: 'application/json'});
+      if (error) throw error;
+      await dbWrite('kv', st => { st.put(key, 'enckey'); st.put(SB_USER.id, 'encuid'); });
+      ENC.key = key; ENC.remote = kc; await loadDocs();
+      render(); toast('🔐 Verschlüsselung eingerichtet – deine Dokumente werden jetzt hochgeladen.', 5000); docsSyncNow();
+      if (!DOCS.pin) setTimeout(() => toast('Tipp: Lege noch eine PIN fest, damit «Dokumente» im Alltag schnell gesperrt ist.', 6000), 5200);
+    } catch (e) { console.error(e); msg(/bucket/i.test(e.message || '') ? 'Der Dateispeicher fehlt in Supabase – zuerst supabase-dokumente.sql ausführen.' : 'Fehler: ' + esc(e.message || e)); }
+  },
+  'enc-unlock': async () => {
+    const pw = $('#enc-pw').value, m = $('#enc-msg'); if (!pw) return;
+    m.textContent = 'Prüfe Passwort …';
+    try {
+      const kc = ENC.remote || await checkRemoteKey(); if (!kc) { m.innerHTML = '<span class="neg">Kein Passwort in der Cloud gefunden.</span>'; return; }
+      const key = await deriveKey(pw, fromB64(kc.salt), kc.iter);
+      let ok = false; try { ok = td8.decode(await decBytes(key, fromB64(kc.check))) === CHECK_TXT; } catch (e) { ok = false; }
+      if (!ok) { m.innerHTML = '<span class="neg">Falsches Passwort.</span>'; $('#enc-pw').value = ''; $('#enc-pw').focus(); return; }
+      await dbWrite('kv', st => { st.put(key, 'enckey'); st.put(SB_USER.id, 'encuid'); });
+      ENC.key = key; render(); toast('🔓 Dokumente auf diesem Gerät freigeschaltet'); docsSyncNow();
+    } catch (e) { console.error(e); m.innerHTML = '<span class="neg">Fehler: ' + esc(e.message || e) + '</span>'; }
+  },
+  'enc-forget': () => askConfirm('Dokumenten-Schlüssel auf diesem Gerät entfernen? Die Dokumente in der Cloud bleiben erhalten; du brauchst danach wieder dein Dokumenten-Passwort.', 'Entfernen', async () => {
+    await dbWrite('kv', st => { st.delete('enckey'); st.delete('encuid'); }); ENC.key = null; ENC.checked = false; render(); toast('Schlüssel entfernt'); }),
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'enc-pw') { e.preventDefault(); ACT['enc-unlock'](); } });
 
 /* ---- Rückfragen als Promise (Ersetzen / Beide behalten, Monat wählen …) ---- */
 function ask(html) { return new Promise(res => { window._askRes = res; openModal(html); }); }
@@ -2950,12 +3118,13 @@ function viewDocs() {
   return `<div class="docs-wrap">
     <aside class="card docs-tree">${tree}
       <div class="docs-pin">${DOCS.pin ? `<button class="btn small" data-act="doc-lock">🔒 Jetzt sperren</button><button class="btn small" data-act="doc-pin">PIN ändern / entfernen</button>` : `<button class="btn small" data-act="doc-pin">🔐 PIN festlegen</button>`}</div>
-      <p class="small muted" style="margin:10px 2px 0">🔒 Dateien bleiben auf diesem Gerät und werden nicht hochgeladen.</p>
+      <p class="small muted" style="margin:10px 2px 0">${ENC.key ? '🔐 Dokumente werden auf dem Gerät verschlüsselt und so auf deinen Geräten abgeglichen – niemand sonst kann sie lesen.' : '🔒 Dateien bleiben auf diesem Gerät und werden nicht hochgeladen.'}</p>
     </aside>
     <div class="grid" style="align-content:start;min-width:0">
+      ${encCard()}
       ${missing.length ? `<div class="note orange" style="margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:200px">📭 ${missing.length === 1 ? `<b>Kontoauszug ${monthLabel(missing[0])} fehlt.</b>` : `<b>${missing.length} Kontoauszüge fehlen:</b> ${missing.slice(0, 6).map(m => monthLabel(m)).join(', ')}${missing.length > 6 ? ' …' : ''}`}</span><button class="btn small" data-act="import">⬆ Importieren</button></div>` : ''}
       <div class="card">
-        <div class="docs-head"><h2 style="margin:0">${DOCS.folder ? esc(DOCS.folder.replace('/', ' › ')) : 'Alle Dokumente'} <span class="r">${list.length}</span></h2>
+        <div class="docs-head"><h2 style="margin:0">${DOCS.folder ? esc(DOCS.folder.replace('/', ' › ')) : 'Alle Dokumente'} <span class="r">${list.length}</span></h2>${docSyncChip()}
           <div class="docs-head-btns">${custom ? `<button class="btn small" data-act="folder-ren">Umbenennen</button><button class="btn small danger" data-act="folder-del">Ordner löschen</button>` : ''}
             <button class="btn small narrow-only" data-act="folder-add">＋ Ordner</button>
             ${DOCS.folder && DOCS.list.some(d => docPath(d) === DOCS.folder || docPath(d).startsWith(DOCS.folder + '/')) ? `<button class="btn small narrow-only" data-act="doc-zip-folder" data-f="${esc(DOCS.folder)}">⬇ Ordner als ZIP</button>` : ''}
@@ -3075,7 +3244,7 @@ Object.assign(ACT, {
       DOCS.folders = DOCS.folders.filter(x => x !== f); await saveFolders(); DOCS.folder = ''; render(); toast('Ordner gelöscht'); }); },
   'doc-pin': () => openModal(`<div class="modal sm"><div class="modal-h"><h3>${DOCS.pin ? 'PIN ändern' : 'PIN für Dokumente'}</h3><button class="icon-btn" data-act="close">✕</button></div>
     <div class="modal-b" style="display:grid;gap:10px">
-      <p class="small muted" style="margin:0">Die PIN sperrt den Bereich «Dokumente» in dieser App auf diesem Gerät (nach 10 Minuten Pause und bei jedem Neustart). Sie verschlüsselt die Dateien nicht. Schütze dein Gerät deshalb zusätzlich mit Bildschirmsperre.</p>
+      <p class="small muted" style="margin:0">Die PIN sperrt den Bereich «Dokumente» in dieser App auf diesem Gerät (nach 10 Minuten Pause und bei jedem Neustart) – für den Alltag. Die Verschlüsselung in der Cloud übernimmt dein Dokumenten-Passwort. Schütze dein Gerät zusätzlich mit einer Bildschirmsperre.</p>
       ${DOCS.pin ? '<label class="f">Aktuelle PIN<input class="inp" type="password" inputmode="numeric" id="pin-old" autocomplete="off"></label>' : ''}
       <label class="f">${DOCS.pin ? 'Neue PIN (leer lassen = PIN entfernen)' : 'Neue PIN (4–12 Ziffern)'}<input class="inp" type="password" inputmode="numeric" id="pin-new" autocomplete="off" maxlength="12"></label>
       <label class="f">Neue PIN wiederholen<input class="inp" type="password" inputmode="numeric" id="pin-new2" autocomplete="off" maxlength="12"></label>
