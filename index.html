@@ -167,6 +167,8 @@ table.pv .desc{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-spac
 .yt tr.sumrow td{border-top:2px solid var(--text);font-weight:700}
 .acc-line{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
 .acc-line:first-of-type{border-top:0}
+.scope-choice{display:grid;gap:6px;margin-top:-4px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:13.5px}
+.scope-choice label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
 .split-box{display:grid;gap:8px;padding:10px 12px;border:1px dashed var(--border);border-radius:12px}
 .te-split{display:grid;grid-template-columns:minmax(0,1fr) 100px 34px;gap:6px;align-items:center}
 .bal-up{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:12px}
@@ -1192,7 +1194,7 @@ function viewTx() {
   if (!S.tx.length) return emptyImport();
   return `<div class="card">
     <div class="toolbar">
-      <input class="inp" type="search" placeholder="🔍 Suchen …" value="${esc(UI.q)}" data-inp="q">
+      <input class="inp" type="search" placeholder="🔍 Suchen (alle Monate) – z. B. twint mama, avec 10.90, kostgeld" value="${esc(UI.q)}" data-inp="q" autocapitalize="off" autocorrect="off" spellcheck="false">
       <select class="inp" data-chg="fcat" style="flex:0 1 180px"><option value="">Alle Kategorien</option>${CAT_LIST.map(c => `<option value="${c}" ${UI.fcat === c ? 'selected' : ''}>${CATS[c].icon} ${c}</option>`).join('')}</select>
       <label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap"><input type="checkbox" data-chg="fall" ${UI.fall ? 'checked' : ''}> Alle Monate</label>
       <button class="btn" data-act="tx-new">＋ Manuell</button>
@@ -1204,12 +1206,36 @@ function viewTx() {
     <div class="list" id="txlist"></div>
   </div>`;
 }
+// Suchtext einer Buchung: angezeigter Titel, Originaltext, Kontakt, Notiz, Kategorie(n), Konto, Betrag, Datum
+const searchNorm = s => normalize(s).replace(/[-–_*\/·,;:()«»"'.]+/g, ' ').replace(/\s+/g, ' ');
+function searchText(t) {
+  const tw = /twint/i.test(t.desc) ? (t.amount > 0 ? 'twint von erhalten' : 'twint an gesendet bezahlt') : '';
+  return ' ' + searchNorm([txTitle(t), t.desc, tw, (t.ph && S.contacts[t.ph]) || '', t.note || '', t.cat, ...(t.splits || []).map(x => x.c), acctName(t.acct || ''),
+    t.amount < 0 ? 'ausgabe' : 'einnahme', t.prov ? 'vorläufig' : '']).replace(/[0-9]+/g, ' ').replace(/\s+/g, ' ') + ' ';
+}
+// Zahlen gezielt: «26» = Betrag 26.xx, «10.90» = genau 10.90, «16.11» = Datum, «2026» = Jahr, «+4179…» = Telefon
+function numberMatch(t, w) {
+  const a = Math.abs(t.amount), [y, m, d] = t.date.split('-');
+  if (/^\+?\d{9,}$/.test(w)) return (t.ph || '').replace(/^\+/, '').includes(w.replace(/^\+/, ''));
+  if (/^\d{1,2}[.,]\d{1,2}[.,]?(\d{2,4})?$/.test(w) && !/^\d+[.,]\d{2}$/.test(w)) { const p = w.split(/[.,]/); return +p[0] === +d && +p[1] === +m && (!p[2] || y.endsWith(p[2])); }
+  if (/^\d+[.,]\d{1,2}$/.test(w)) { const n = parseFloat(w.replace(',', '.')); return Math.abs(a - n) < 0.005 || (/^\d{1,2}[.,]\d{2}$/.test(w) && +w.split(/[.,]/)[0] === +d && +w.split(/[.,]/)[1] === +m); }
+  if (/^\d{4}$/.test(w)) return y === w || Math.floor(a) === +w;
+  if (/^\d+$/.test(w)) return Math.floor(a) === +w;
+  return false;
+}
+function matchesSearch(t, q) {
+  const words = searchNorm(String(q || '').replace(/(\d)[.,](\d)/g, '$1§$2')).split(' ').map(w => w.replace(/§/g, '.')).filter(Boolean);
+  if (!words.length) return true;
+  const hay = searchText(t);
+  return words.every(w => /\d/.test(w) ? numberMatch(t, w) : hay.includes(' ' + w) || hay.includes(w));
+}
 function renderTxList() {
-  const q = normalize(UI.q);
-  const list = S.tx.filter(t => (UI.fall || inPeriod(t, UI.month)) && (!UI.fcat || t.cat === UI.fcat) && (!q || normalize(t.desc + ' ' + t.cat).includes(q) || String(t.amount).includes(q)))
+  const q = UI.q;
+  const all = UI.fall || !!q.trim();
+  const list = S.tx.filter(t => (all || inPeriod(t, UI.month)) && (!UI.fcat || t.cat === UI.fcat || (t.splits || []).some(x => x.c === UI.fcat)) && matchesSearch(t, q))
     .sort((a, b) => b.date.localeCompare(a.date) || a.desc.localeCompare(b.desc));
   const inc = sum(list.filter(t => t.amount > 0).map(t => t.amount)), out = sum(list.filter(t => t.amount < 0).map(t => t.amount));
-  $('#txsum').innerHTML = `<b>${list.length}</b> Buchungen ${UI.fall ? '' : '· ' + periodText(UI.month)} · Einnahmen <span class="pos">+${nf2.format(inc)}</span> · Ausgaben <span class="neg">−${nf2.format(-out)}</span>`;
+  $('#txsum').innerHTML = `<b>${list.length}</b> Buchungen ${q.trim() ? '· Suche in allen Monaten' : all ? '' : '· ' + periodText(UI.month)} · Einnahmen <span class="pos">+${nf2.format(inc)}</span> · Ausgaben <span class="neg">−${nf2.format(-out)}</span>`;
   $('#txlist').innerHTML = list.length ? groupedRows(list.slice(0, 600), true) : '<p class="muted">Keine Transaktionen gefunden.</p>';
 }
 function viewBudget() {
@@ -1611,7 +1637,7 @@ function openTxEditor(id) {
   const t = id ? S.tx.find(x => x.id === id) : null;
   if (id && !t) return;
   if (!window._te || window._te.id !== (id || 'new')) window._te = {id: id || 'new', f: t
-    ? {type: t.amount < 0 ? -1 : 1, date: t.date, desc: t.desc, amt: Math.abs(t.amount), cat: t.cat, acct: t.acct || mainAcctId(), note: t.note || '', contact: t.ph ? (S.contacts[t.ph] || '') : ''}
+    ? {type: t.amount < 0 ? -1 : 1, date: t.date, desc: t.desc, amt: Math.abs(t.amount), cat: t.cat, acct: t.acct || mainAcctId(), note: t.note || '', contact: t.ph ? (S.contacts[t.ph] || '') : '', learn: false}
     : {type: -1, date: isoLocal(new Date()), desc: '', amt: '', cat: '', acct: mainAcctId(), note: '', contact: ''},
     splits: t && t.splits ? t.splits.map(s => ({c: s.c, a: Math.abs(+s.a)})) : []};
   const s = window._te, f = s.f, accs = S.accounts || [];
@@ -1628,6 +1654,13 @@ function openTxEditor(id) {
         ${accs.length ? `<label class="f">Konto<select class="inp" id="te-acct">${accs.map(a => `<option value="${a.id}" ${a.id === f.acct ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>` : '<span></span>'}
       </div>
       <label class="f">Kategorie${t ? '' : ' (leer = automatisch)'}<select class="inp" id="te-cat">${catOptions(f.cat, !t)}</select></label>
+      ${t ? (() => { const who = t.ph ? (S.contacts[t.ph] || t.ph) : merchantKey(t.desc); const rule = S.rules[txKey(t)];
+        const n = similarCount(t);
+        return `<div class="scope-choice">
+          <label><input type="radio" name="te-scope" value="one" ${f.learn ? '' : 'checked'}><span>Nur diese Buchung</span></label>
+          <label><input type="radio" name="te-scope" value="all" id="te-learn" ${f.learn ? 'checked' : ''}><span>Für alle ${t.ph ? 'TWINT-Zahlungen von/an <b>' + esc(who) + '</b>' : 'Buchungen von <b>«' + esc(who) + '»</b>'} übernehmen <span class="muted">(${n} weitere + künftige)</span></span></label>
+        </div>
+        ${rule ? `<div class="small muted" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Regel aktiv: alle ${t.ph ? 'Zahlungen ' + esc(who) : '«' + esc(who) + '»'} → ${cinfo(rule).icon} ${esc(rule)} <button class="btn small" data-act="te-rule-del">Regel aufheben</button></div>` : ''}`; })() : ''}
       ${t && t.ph ? `<label class="f">TWINT-Kontakt ${esc(t.ph)} – Name<input class="inp" id="te-contact" value="${esc(f.contact)}" placeholder="z. B. Luca"></label>` : ''}
       <label class="f">Notiz<input class="inp" id="te-note" value="${esc(f.note)}" placeholder="z. B. Geburtstagsgeschenk Mama"></label>
       <div class="split-box">
@@ -1643,9 +1676,12 @@ function readTe() {
   const s = window._te; if (!s || !$('#te-date')) return;
   const f = s.f; f.type = +$('#te-type').value; f.date = $('#te-date').value; f.desc = $('#te-desc').value; f.amt = $('#te-amt').value;
   f.cat = $('#te-cat').value; f.note = $('#te-note').value; if ($('#te-acct')) f.acct = $('#te-acct').value; if ($('#te-contact')) f.contact = $('#te-contact').value;
+  if ($('#te-learn')) f.learn = $('#te-learn').checked;
   document.querySelectorAll('.te-split').forEach(r => { const x = s.splits[+r.dataset.i]; x.c = r.querySelector('select').value; x.a = r.querySelector('input').value; });
 }
 // Kategorie lernen: gilt künftig für gleiche Händler bzw. gleichen TWINT-Kontakt
+// wie viele andere Buchungen (gleicher Händler / gleicher TWINT-Kontakt, gleiche Richtung) wären betroffen
+function similarCount(t) { const key = txKey(t); return S.tx.filter(o => o !== t && !o.manual && !o.splits && Math.sign(o.amount) === Math.sign(t.amount) && txKey(o) === key).length; }
 function learnCategory(t, cat) {
   const key = txKey(t); S.rules[key] = cat; let n = 0;
   for (const o of S.tx) if (o !== t && !o.manual && !o.splits && o.cat !== cat && Math.sign(o.amount) === Math.sign(t.amount) && txKey(o) === key) { o.cat = cat; n++; }
@@ -1656,8 +1692,19 @@ function learnCategory(t, cat) {
 function setCategory(id, cat) {
   const t = S.tx.find(x => x.id === id); if (!t) return;
   t.cat = cat; t.manual = true;
-  const {key, n} = learnCategory(t, cat);
-  save(); toast(`Gemerkt: «${key.replace(/^tel:/, '') }» → ${cat}${n ? ` (${n} weitere angepasst)` : ''}`); render();
+  save(); render();
+  // nachfragen: nur diese Buchung oder für alle ähnlichen übernehmen?
+  const who = t.ph ? (S.contacts[t.ph] || t.ph) : merchantKey(t.desc); const n = similarCount(t);
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>Kategorie geändert</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b"><p style="margin:0">«${esc(txTitle(t))}» ist jetzt <b>${cinfo(cat).icon} ${esc(cat)}</b>.</p>
+      <p class="small muted">Soll das auch für ${t.ph ? 'alle TWINT-Zahlungen von/an <b>' + esc(who) + '</b>' : 'alle Buchungen von <b>«' + esc(who) + '»</b>'} gelten? Das betrifft ${n} weitere Buchung${n === 1 ? '' : 'en'} und alle künftigen.</p></div>
+    <div class="modal-f"><button class="btn" data-act="close">Nur diese Buchung</button><button class="btn primary" data-act="cat-all" data-id="${t.id}">Für alle übernehmen</button></div></div>`);
+}
+// Regel aufheben: betroffene (nicht von Hand gesetzte) Buchungen bekommen wieder die automatische Kategorie
+function removeRule(key) {
+  delete S.rules[key]; let n = 0;
+  for (const o of S.tx) if (!o.manual && !o.splits && txKey(o) === key && o.cat !== 'Sparen' && o.cat !== 'Lohn') { const c = categorize(o.desc, o.amount, o.ph); if (c !== o.cat) { o.cat = c; n++; } }
+  return n;
 }
 function exportRows() { return [...S.tx].sort((a, b) => a.date.localeCompare(b.date)).map(t => ({Datum: fmtDate(t.date), Beschreibung: t.desc, Betrag: t.amount, Typ: t.amount >= 0 ? 'Einnahme' : 'Ausgabe', Kategorie: t.cat})); }
 function exportCSV() {
@@ -1725,6 +1772,16 @@ const ACT = {
   'tx-new': () => { window._te = null; openTxEditor(null); },
   'tx-edit': a => { window._te = null; openTxEditor(a.dataset.id); },
   'te-close': () => { window._te = null; closeModal(); },
+  'cat-all': a => {
+    const t = S.tx.find(x => x.id === a.dataset.id); closeModal(); if (!t) return;
+    const {n} = learnCategory(t, t.cat); save(); render();
+    toast(`Für alle übernommen: ${t.cat}${n ? ` · ${n} weitere angepasst` : ''}`);
+  },
+  'te-rule-del': () => {
+    readTe(); const s = window._te; const t = S.tx.find(x => x.id === s.id); if (!t) return;
+    const n = removeRule(txKey(t)); save(); openTxEditor(t.id);
+    toast(`Regel aufgehoben · ${n} Buchungen wieder automatisch zugeordnet`, 5000);
+  },
   'te-split-add': () => { readTe(); const s = window._te; const rest = Math.max(0, (parseAmount(s.f.amt) || 0) - sum(s.splits.map(x => parseAmount(x.a) || 0))); s.splits.push({c: s.f.cat === 'Snus' ? 'Essen' : 'Diverses', a: rest ? Math.round(rest * 100) / 100 : ''}); openTxEditor(s.id === 'new' ? null : s.id); },
   'te-split-del': a => { readTe(); window._te.splits.splice(+a.dataset.i, 1); openTxEditor(window._te.id === 'new' ? null : window._te.id); },
   'te-save': () => {
@@ -1747,7 +1804,7 @@ const ACT = {
     if (signed.length) t.splits = signed; else delete t.splits;
     if (t.ph) { const nm = (f.contact || '').trim(); S.contacts = {...(S.contacts || {})}; if (nm) S.contacts[t.ph] = nm; else delete S.contacts[t.ph]; }
     let learned = '';
-    if (!isNew && f.cat && f.cat !== oldCat) { t.manual = true; if (!signed.length) { const r = learnCategory(t, f.cat); if (r.n) learned = ` · ${r.n} ähnliche angepasst`; } }
+    if (!isNew && f.cat && f.cat !== oldCat) { t.manual = true; if (!signed.length && f.learn) { const r = learnCategory(t, f.cat); learned = r.n ? ` · ${r.n} ähnliche angepasst` : ' · gemerkt'; } else learned = ' · nur diese Buchung'; }
     if (isNew && f.cat) t.manual = true;
     if (t.prov && !isNew) { /* bleibt vorläufig, bis der Kontoauszug kommt */ }
     window._te = null; save(); closeModal(); render(); toast((isNew ? 'Buchung erfasst' : 'Buchung gespeichert') + learned);
@@ -2146,10 +2203,10 @@ function openSyncSetup() {
   openModal(`<div class="modal sm"><div class="modal-h"><h3>☁️ Sync einrichten</h3><button class="icon-btn" data-act="close">✕</button></div>
     <div class="modal-b" style="display:grid;gap:10px">
       <p class="small muted" style="margin:0">Damit PC und iPhone dieselben Daten haben, verbindet sich die App mit deiner eigenen, kostenlosen Supabase-Datenbank. Die Werte findest du in Supabase unter <b>Project Settings → API</b>.</p>
-      <label class="f">Project URL<input class="inp" id="cfg-url" placeholder="https://xxxx.supabase.co" autocomplete="off"></label>
-      <label class="f">anon public key<input class="inp" id="cfg-key" placeholder="eyJhbGciOi…" autocomplete="off"></label>
+      <label class="f">Project URL<input class="inp" id="cfg-url" placeholder="https://xxxx.supabase.co" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url"></label>
+      <label class="f">anon public key<input class="inp" id="cfg-key" placeholder="eyJhbGciOi…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="muted small" style="text-align:center">– oder –</div>
-      <label class="f">Einrichtungscode (vom anderen Gerät)<input class="inp" id="cfg-code" placeholder="MB1:…" autocomplete="off"></label>
+      <label class="f">Einrichtungscode (vom anderen Gerät)<textarea class="inp" id="cfg-code" rows="3" placeholder="MB1:…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:ui-monospace,monospace;font-size:12px"></textarea></label>
       <div id="cfg-msg" class="small"></div>
     </div>
     <div class="modal-f"><button class="btn" data-act="sync-skip">Ohne Sync nutzen</button><button class="btn primary" data-act="sync-save">Verbinden</button></div></div>`);
@@ -2165,12 +2222,27 @@ function openLogin(msg) {
     <div class="modal-f"><button class="btn" data-act="lg-signup">Konto erstellen</button><button class="btn primary" data-act="lg-login">Anmelden</button></div></div>`);
 }
 const setupCode = c => 'MB1:' + btoa(JSON.stringify({u: c.url, k: c.key}));
+// tolerant: Leerzeichen, Zeilenumbrüche, «smarte» Zeichen vom iPhone, fehlende Polsterung –
+// oder einfach URL und Schlüssel im Klartext eingefügt
+function parseSetupCode(text) {
+  const raw = String(text || '').trim();
+  const direct = {u: (raw.match(/https:\/\/[a-z0-9-]+\.supabase\.(co|in)/i) || [])[0], k: (raw.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/) || raw.match(/sb_publishable_[A-Za-z0-9_-]+/) || [])[0]};
+  if (direct.u && direct.k) return direct;
+  let b = raw.replace(/^[\s\S]*?MB1\s*[:：]/i, '').replace(/[\s​-‍﻿]+/g, '').replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/=]/g, '');
+  b = b.replace(/=+$/, ''); while (b.length % 4) b += '=';
+  try { const o = JSON.parse(atob(b)); if (o && o.u && o.k) return {u: String(o.u).trim(), k: String(o.k).trim()}; } catch (e) {}
+  return null;
+}
 Object.assign(ACT, {
   'sync-skip': () => { try { localStorage.setItem(NOSYNC_KEY, '1'); } catch (e) {} closeModal(); toast('Ohne Sync – Daten nur auf diesem Gerät. Einrichten jederzeit unter ⚙.', 5000); },
   'sync-setup': () => openSyncSetup(),
   'sync-save': () => {
     let url = $('#cfg-url').value.trim(), key = $('#cfg-key').value.trim(); const code = $('#cfg-code').value.trim();
-    if (code) { try { const o = JSON.parse(atob(code.replace(/^MB1:/, ''))); url = o.u; key = o.k; } catch (e) { $('#cfg-msg').innerHTML = '<span class="neg">Der Einrichtungscode ist ungültig.</span>'; return; } }
+    if (code) {
+      const o = parseSetupCode(code);
+      if (!o) { $('#cfg-msg').innerHTML = '<span class="neg">Der Einrichtungscode ist unvollständig. Kopiere ihn nochmals ganz (er ist sehr lang) – oder füge oben die Project URL und den anon key einzeln ein.</span>'; return; }
+      url = o.u; key = o.k;
+    }
     if (!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/?$/i.test(url) || key.length < 30) { $('#cfg-msg').innerHTML = '<span class="neg">Bitte Project URL (https://….supabase.co) und anon key einfügen.</span>'; return; }
     try { localStorage.setItem(CFG_KEY, JSON.stringify({url: url.replace(/\/$/, ''), key})); localStorage.removeItem(NOSYNC_KEY); } catch (e) {}
     location.reload();
