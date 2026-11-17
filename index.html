@@ -13,38 +13,51 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
+/* Layout: Seitenleiste links (PC) · Inhalt rechts · Handy: Leiste unten */
 :root{
-  --bg:#f4f6fa;--card:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
-  --primary:#4f46e5;--primary-weak:#eef2ff;--on-primary:#fff;
-  --green:#16a34a;--orange:#ea580c;--red:#dc2626;
-  --green-bg:#dcfce7;--orange-bg:#ffedd5;--red-bg:#fee2e2;
-  --track:#e8edf3;--shadow:0 1px 2px rgba(15,23,42,.05),0 6px 20px rgba(15,23,42,.05);
-  --radius:16px;
+  --bg:#f4f6fb;--card:#ffffff;--text:#0b1324;--muted:#667085;--border:#e6eaf2;
+  --primary:#2563eb;--primary-2:#1d4ed8;--primary-weak:#eaf1ff;--on-primary:#fff;
+  --green:#15803d;--orange:#c2410c;--red:#dc2626;--teal:#14b8a6;
+  --green-bg:#e3f6ea;--orange-bg:#fff1e6;--red-bg:#fdeaea;
+  --hero-1:#0b1f4b;--hero-2:#123a8a;--hero-text:#eaf0ff;--hero-muted:#a9b8e0;--hero-line:#5eead4;
+  --side:#ffffff;--track:#edf1f7;--shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.05);
+  --radius:20px;--font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0b1120;--card:#141b2d;--text:#e5e9f2;--muted:#8f9bb3;--border:#243049;
-  --primary:#8b93ff;--primary-weak:#1d2347;--on-primary:#0b1120;
+  --bg:#0a0f1c;--card:#121a2b;--text:#e7ecf7;--muted:#8d9ab5;--border:#1f2a40;
+  --primary:#6b9bff;--primary-2:#4f83ff;--primary-weak:#17244a;--on-primary:#06122e;
   --green:#4ade80;--orange:#fb923c;--red:#f87171;
-  --green-bg:#11301f;--orange-bg:#3a230f;--red-bg:#3b1616;
-  --track:#243049;--shadow:none;color-scheme:dark;
+  --green-bg:#10301f;--orange-bg:#3a230f;--red-bg:#3b1616;
+  --hero-1:#0b1736;--hero-2:#173a85;--side:#0e1525;
+  --track:#1f2a40;--shadow:none;color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0b1120;--card:#141b2d;--text:#e5e9f2;--muted:#8f9bb3;--border:#243049;
-  --primary:#8b93ff;--primary-weak:#1d2347;--on-primary:#0b1120;
+  --bg:#0a0f1c;--card:#121a2b;--text:#e7ecf7;--muted:#8d9ab5;--border:#1f2a40;
+  --primary:#6b9bff;--primary-2:#4f83ff;--primary-weak:#17244a;--on-primary:#06122e;
   --green:#4ade80;--orange:#fb923c;--red:#f87171;
-  --green-bg:#11301f;--orange-bg:#3a230f;--red-bg:#3b1616;
-  --track:#243049;--shadow:none;color-scheme:dark;
+  --green-bg:#10301f;--orange-bg:#3a230f;--red-bg:#3b1616;
+  --hero-1:#0b1736;--hero-2:#173a85;--side:#0e1525;
+  --track:#1f2a40;--shadow:none;color-scheme:dark;
 }
+/* Akzentfarben (Einstellungen → Darstellung) */
+:root[data-accent="violet"]{--primary:#7c3aed;--primary-2:#6d28d9;--primary-weak:#f1eaff;--hero-1:#24104f;--hero-2:#4c1d95}
+:root[data-accent="gruen"]{--primary:#059669;--primary-2:#047857;--primary-weak:#e3f7ef;--hero-1:#062c22;--hero-2:#065f46}
+:root[data-accent="orange"]{--primary:#ea580c;--primary-2:#c2410c;--primary-weak:#fff0e6;--hero-1:#3b1405;--hero-2:#9a3412}
+:root[data-accent="pink"]{--primary:#db2777;--primary-2:#be185d;--primary-weak:#fde9f2;--hero-1:#3d0a24;--hero-2:#9d174d}
+:root[data-accent="grau"]{--primary:#334155;--primary-2:#1e293b;--primary-weak:#eef1f5;--hero-1:#0f172a;--hero-2:#334155}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+body{background:var(--bg);color:var(--text);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding-bottom:84px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--bg)}
 button,input,select{font:inherit;color:inherit}
 .wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -220,9 +233,24 @@ table.pv .desc{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-spac
   .form-grid .btn{grid-column:1/-1;justify-content:center}
   nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);border-top:1px solid var(--border);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));justify-content:space-around;gap:0}
   .sync span{display:none}
-  nav.tabs button{flex-direction:column;gap:1px;font-size:11px;padding:6px 4px;flex:1}
-  nav.tabs button .ti{font-size:20px}
+  nav.tabs button{flex-direction:column;gap:2px;font-size:10.5px;padding:6px 2px;flex:1;min-width:0}
+  nav.tabs button .tl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   nav.tabs button.on{box-shadow:none;background:var(--primary-weak);color:var(--primary)}
+  .side{display:contents}
+  .side-logo,.side-foot,.desk-only{display:none!important}
+  .page-title{display:none}
+  .month{margin-left:auto}
+  .hero2{padding:20px;border-radius:22px}
+  .hero2 .h-top{flex-direction:column-reverse;align-items:stretch}
+  .hero2 .seg{margin-left:0;align-self:flex-start}
+  .hero2 .h-big{font-size:42px}
+  .hero2 .h-chart{height:160px}
+  .kpis4{grid-template-columns:1fr 1fr!important;gap:12px}
+  .kpi{padding:14px}
+  .kpi-h{flex-wrap:wrap;font-size:13.5px;gap:8px}
+  .kpi-ic{width:28px;height:28px;font-size:14px}
+  .kpi-badge{margin-left:0}
+  .hchip{padding:6px 11px}
   .hide-m{display:none!important}
   .txfull{grid-template-columns:38px 1fr auto;row-gap:4px}
   .txfull .catcell{grid-column:2/3}
@@ -233,37 +261,206 @@ table.pv .desc{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-spac
   .logo .lt{display:none}
 }
 @media (min-width:821px){ body{padding-bottom:0} }
+/* ===== Design 2: Seitenleiste, Kopfzeile, Kacheln ===== */
+nav.tabs .ti{display:grid;place-items:center}
+nav.tabs .ti svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.page-title{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.btn{border-radius:12px}
+.btn.primary{background:var(--primary);border-color:var(--primary)}
+.card{border-radius:var(--radius)}
+.card h2{font-size:16.5px;font-weight:650}
+@media (min-width:821px){
+  .side{position:fixed;inset:0 auto 0 0;width:252px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:22px 16px 16px;z-index:30;overflow-y:auto}
+  .shell{margin-left:252px}
+  .mob-only{display:none!important}
+  .side-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em;padding:0 8px 18px}
+  .side-logo b{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--primary),var(--hero-2));color:#fff;font-size:17px}
+  nav.tabs{flex-direction:column;padding:6px 0;gap:3px}
+  nav.tabs button{width:100%;padding:11px 14px;border-radius:14px;font-size:15px;color:var(--text);font-weight:500;gap:13px;opacity:.85}
+  nav.tabs button:hover{background:var(--bg);opacity:1}
+  nav.tabs button.on{background:var(--hero-1);color:#fff;box-shadow:0 6px 16px rgba(11,31,75,.25);opacity:1}
+  :root[data-theme="dark"] nav.tabs button.on{background:var(--primary-weak);color:var(--text)}
+  .side-foot{margin-top:auto;display:grid;gap:10px;padding-top:16px;border-top:1px solid var(--border)}
+  .cta{border:0;border-radius:14px;padding:13px;font:600 15px var(--font);color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-2));cursor:pointer;box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 35%,transparent)}
+  .cta:hover{filter:brightness(1.05)}
+  .side-imp{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:9px;font:600 13px var(--font);color:var(--text);cursor:pointer}
+  .me{display:flex;align-items:center;gap:10px;padding:6px 4px}
+  .av{width:38px;height:38px;border-radius:50%;background:var(--primary-weak);color:var(--primary);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+  .me-t{min-width:0;flex:1}.me-t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+  header.top{border-bottom:0;background:color-mix(in srgb,var(--bg) 90%,transparent)}
+  .top-in{height:72px}
+  .wrap{max-width:1240px;padding-left:32px;padding-right:32px}
+  main{padding-top:4px}
+}
+/* Hero «Verfügbar» */
+.hero2{position:relative;overflow:hidden;border-radius:28px;padding:28px 32px;color:var(--hero-text);background:radial-gradient(120% 140% at 85% 0%,var(--hero-2) 0%,var(--hero-1) 55%,#060d22 100%);box-shadow:0 18px 40px rgba(11,31,75,.25)}
+.hero2 .h-top{display:flex;align-items:flex-start;gap:12px}
+.hero2 .h-lbl{color:var(--hero-muted);font-weight:500}
+.hero2 .h-big{font-size:clamp(40px,7vw,72px);font-weight:700;letter-spacing:-.035em;line-height:1.05;margin:10px 0 6px;font-variant-numeric:tabular-nums;color:#fff}
+.hero2 .h-big small{font-size:.42em;font-weight:500;color:var(--hero-muted);margin-right:8px;letter-spacing:0}
+.hero2 .h-big .dec{font-size:.5em;font-weight:500;color:var(--hero-muted)}
+.hero2 .h-big.neg{color:#fecaca}
+.hero2 .h-sub{color:var(--hero-text);opacity:.9}
+.seg{margin-left:auto;display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--hero-muted);font:500 14px var(--font);padding:7px 16px;border-radius:999px;cursor:pointer}
+.seg button.on{background:#fff;color:#0b1324}
+.hero2 .h-chart{position:relative;height:190px;margin:12px -6px 4px}
+.hero2 .h-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hchip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--hero-muted);white-space:nowrap}
+.hchip b{color:#fff;font-weight:600;margin-left:6px}
+.hper{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:999px;padding:4px}
+.hper button{border:0;background:transparent;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px}
+.hper button:hover{background:rgba(255,255,255,.12)}
+.hper span{font-weight:600;color:#fff;min-width:120px;text-align:center;font-size:14px}
+.hnote{margin-top:14px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.08);font-size:13.5px;color:var(--hero-text)}
+/* Kennzahl-Kacheln */
+.kpis4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;min-width:0;cursor:default}
+.kpi[data-act]{cursor:pointer}
+.kpi-h{display:flex;align-items:center;gap:10px;font-weight:500;font-size:14.5px}
+.kpi-ic{width:34px;height:34px;border-radius:50%;background:var(--primary-weak);color:var(--primary);display:grid;place-items:center;font-size:16px;flex:none}
+.kpi-badge{margin-left:auto;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--green-bg);color:var(--green);white-space:nowrap}
+.kpi-badge.bad{background:var(--red-bg);color:var(--red)}.kpi-badge.mid{background:var(--orange-bg);color:var(--orange)}
+.kpi-v{font-size:clamp(24px,2.4vw,32px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;white-space:nowrap}
+.kpi-v small{font-size:15px;color:var(--muted);font-weight:500;margin-left:2px}
+.kpi-s{font-size:12.5px;color:var(--muted)}
+.segbar{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.segbar i{height:7px;border-radius:9px;background:var(--track)}
+.segbar i.on{background:var(--green)}
+/* Bevorstehend & Budget-Ringe */
+.up-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--border)}
+.up-row:first-of-type{border-top:0}
+.up-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--primary-weak);color:var(--primary)}
+.up-row .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.up-row .s{font-size:12.5px;color:var(--muted)}
+.up-row .a{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ring-row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--border)}
+.ring-row:first-of-type{border-top:0}
+.ring{position:relative;width:52px;height:52px}
+.ring svg{width:52px;height:52px;transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:12.5px;font-variant-numeric:tabular-nums}
+.ring-row .t{font-weight:600}
+.ring-row .s{font-size:12.5px}
+.ring-row .a{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.ring-row .a b{display:block;color:var(--text);font-size:15px}
+/* Einstellungen */
+.set-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border)}
+.set-row:first-of-type{border-top:0}
+.set-row .lbl{min-width:0;flex:1}.set-row>:last-child:not(.lbl){flex:none}.set-row .lbl b{display:block;font-weight:600;font-size:14.5px}.set-row .lbl span{font-size:12.5px;color:var(--muted)}
+.set-row .inp{width:auto;min-width:120px;max-width:200px}
+.sw{position:relative;width:46px;height:27px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--track);transition:.2s;cursor:pointer}
+.sw i::after{content:"";position:absolute;width:21px;height:21px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+.sw input:checked+i{background:var(--primary)}
+.sw input:checked+i::after{transform:translateX(19px)}
+.sw input:focus-visible+i{outline:2px solid var(--primary);outline-offset:2px}
+.accents{display:flex;gap:8px}
+.accents button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.accents button.on{border-color:var(--text);box-shadow:0 0 0 2px var(--card) inset}
+.cmp-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px 78px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:14px;font-variant-numeric:tabular-nums}
+.cmp-row>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-row:first-of-type{border-top:0}
+.cmp-row .d{text-align:right;font-weight:600}
+@media (max-width:820px){ .set-grid{grid-template-columns:1fr} .hper{margin-left:0} .cmp-row{grid-template-columns:minmax(0,1fr) 64px 64px 72px;font-size:13px} }
+/* Dokumente */
+.docs-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:16px;align-items:start}
+.docs-tree{position:sticky;top:84px;padding:12px}
+.fold{display:flex;align-items:center;border-radius:12px}
+.fold>button:first-child{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:9px 10px;border-radius:12px;cursor:pointer;font:500 14px var(--font);color:var(--text);text-align:left}
+.fold.sub>button:first-child{padding-left:30px;font-size:13.5px}
+.fold:hover{background:var(--bg)}
+.fold.on{background:var(--primary-weak)}.fold.on>button:first-child{color:var(--primary);font-weight:600}
+.fold .fl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold .fc{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fold .fz{width:28px;height:28px;font-size:13px;opacity:0;transition:opacity .15s}
+.fold:hover .fz,.fold.on .fz{opacity:1}
+.docs-pin{display:grid;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.docs-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.docs-head h2{flex:1;min-width:0}
+.docs-head-btns{display:flex;gap:8px;flex-wrap:wrap}
+.docs-fsel{display:none;margin-top:12px}
+.selbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;margin-bottom:10px;border-radius:12px;background:var(--primary-weak)}
+.selbar b{margin-right:auto}
+.doc-list{display:flex;flex-direction:column}
+.doc-row{display:grid;grid-template-columns:28px minmax(0,2.4fr) minmax(0,1.2fr) minmax(0,1fr) 92px 72px 150px;gap:10px;align-items:center;padding:8px 6px;border-top:1px solid var(--border);border-radius:10px;font-size:14px}
+.doc-row.sel{background:var(--primary-weak)}
+.doc-row.doc-hd{border-top:0;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.doc-row label{display:grid;place-items:center}
+.doc-name{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;cursor:pointer;font:600 14px var(--font);color:var(--text);text-align:left;min-width:0}
+.doc-name:hover .dn{color:var(--primary);text-decoration:underline}
+.doc-name .di{font-size:20px;flex:none}
+.doc-name .dn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-type,.dm-per,.dm-up{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-size{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.doc-act{display:flex;justify-content:flex-end;gap:2px}
+.doc-act .icon-btn{width:32px;height:32px;font-size:15px}
+.dm-mob{display:none}
+.pdf-page{display:block;width:100%;height:auto;margin:0 auto 12px;background:#fff;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.doc-pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;max-height:70vh;overflow:auto}
+.lock-card{max-width:360px;margin:40px auto;text-align:center;display:grid;gap:8px;justify-items:center}
+.pin-in{text-align:center;font-size:22px;letter-spacing:.4em;max-width:220px}
+.narrow-only{display:none!important}
+@media (max-width:1180px){ .docs-wrap{grid-template-columns:1fr} .docs-tree{display:none} .docs-fsel{display:block} .narrow-only{display:inline-flex!important} }
+.doc-list{container-type:inline-size}
+@container (max-width:900px){ .doc-row{grid-template-columns:28px minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 72px 132px} .dm-up{display:none} .doc-row.doc-hd span:nth-child(5){display:none} }
+@container (max-width:680px){
+  .doc-row{grid-template-columns:24px minmax(0,1fr) auto;row-gap:2px;padding:10px 2px}
+  .doc-row.doc-hd{display:none}
+  .dm-type,.dm-per,.dm-up,.dm-size{display:none}
+  .doc-act{grid-column:3;grid-row:1/3}
+  .doc-act .icon-btn{width:30px}
+  .dm-mob{display:block;grid-column:2;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@container (max-width:420px){ .doc-act [data-act="doc-move"],.doc-act [data-act="doc-ren"]{display:none} }
+@media (max-width:820px){ nav.tabs button{font-size:9.5px} }
+:root.compact .card{padding:14px}:root.compact .tx{padding:6px 0}:root.compact .kpi{padding:14px}
 </style>
 </head>
 <body>
+<aside class="side" id="side">
+  <div class="side-logo"><b>₣</b><span>Mein Budget</span></div>
+  <nav class="tabs" id="tabs">
+    <button data-act="tab" data-tab="dash"><span class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><span class="tl">Übersicht</span></button>
+    <button data-act="tab" data-tab="tx"><span class="ti"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></span><span class="tl">Buchungen</span></button>
+    <button data-act="tab" data-tab="budget"><span class="ti"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></span><span class="tl">Planen</span></button>
+    <button data-act="tab" data-tab="goals"><span class="ti"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><span class="tl">Sparen</span></button>
+    <button data-act="tab" data-tab="acc"><span class="ti"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></span><span class="tl">Konten</span></button>
+    <button data-act="tab" data-tab="docs"><span class="ti"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="tl">Dokumente</span></button>
+    <button data-act="tab" data-tab="tips"><span class="ti"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="tl">Einsichten</span></button>
+    <button data-act="tab" data-tab="set" class="desk-only"><span class="ti"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span><span class="tl">Einstellungen</span></button>
+  </nav>
+  <div class="side-foot">
+    <button class="cta" data-act="tx-new">＋ Erfassen</button>
+    <button class="side-imp" data-act="import">⬆ Kontoauszug importieren</button>
+    <div class="me"><div class="av" id="meAv">MB</div><div class="me-t"><b id="meName">Mein Budget</b><div class="small muted" id="meSub">nur dieses Gerät</div></div><button class="icon-btn" data-act="tab" data-tab="set" title="Einstellungen">⚙</button></div>
+  </div>
+</aside>
+<div class="shell">
 <header class="top">
   <div class="wrap">
     <div class="top-in">
-      <div class="logo"><b>₣</b><span class="lt">Mein Budget</span></div>
+      <div class="logo mob-only"><b>₣</b></div>
+      <h1 class="page-title" id="pageTitle">Übersicht</h1>
       <div class="month">
         <button class="icon-btn" data-act="mprev" aria-label="Vorheriger Monat">‹</button>
         <span id="mlabel"></span>
         <button class="icon-btn" data-act="mnext" aria-label="Nächster Monat">›</button>
       </div>
       <div class="sync" id="sync" title="Nur auf diesem Gerät gespeichert"><i></i><span>lokal</span></div>
-      <button class="btn primary" data-act="import" title="Kontoauszug importieren">⬆<span class="hide-m">Import</span></button>
+      <button class="btn primary mob-only" data-act="import" title="Kontoauszug importieren">⬆</button>
       <button class="icon-btn" data-act="theme" id="themeBtn" title="Hell / Dunkel"></button>
-      <button class="icon-btn" data-act="settings" title="Einstellungen & Export">⚙</button>
+      <button class="icon-btn mob-only" data-act="settings" title="Einstellungen">⚙</button>
     </div>
-    <nav class="tabs" id="tabs">
-      <button data-act="tab" data-tab="dash"><span class="ti">🏠</span>Übersicht</button>
-      <button data-act="tab" data-tab="tx"><span class="ti">📋</span>Buchungen</button>
-      <button data-act="tab" data-tab="budget"><span class="ti">📊</span>Budget</button>
-      <button data-act="tab" data-tab="goals"><span class="ti">🎯</span>Sparen</button>
-      <button data-act="tab" data-tab="acc"><span class="ti">🏦</span>Konten</button>
-      <button data-act="tab" data-tab="tips"><span class="ti">💡</span>Auswertung</button>
-    </nav>
   </div>
 </header>
 <main class="wrap" id="main"></main>
+</div>
 <div id="modal"></div>
 <input type="file" id="file" accept=".csv,.txt,.pdf,.xlsx,.xls" multiple hidden>
 <input type="file" id="restoreFile" accept=".json" hidden>
+<input type="file" id="docFile" accept=".pdf,.csv,.txt,.png,.jpg,.jpeg,.webp,.heic,.xlsx,.xls,.docx,application/pdf,image/*" multiple hidden>
 
 <script>
 'use strict';
@@ -376,7 +573,7 @@ function categorize(desc, amount, ph) {
       if (t === 'in' && amount < 0) continue;
       if (amount > 0 && t !== 'in' && t !== 'transfer' && cat !== 'Sparen' && !REFUND.test(desc)) continue;
       // Kleinbeträge an Tankstellen sind meist Snacks aus dem Shop, kein Benzin
-      if (cat === 'Transport' && amount > -20 && /tankstelle|agrola|migrol |shell|avia|socar|tamoil| bp | eni /.test(p)) return 'Take-away';
+      if (cat === 'Transport' && amount > -(+(S.settings.prefs || {}).fuelMax || 20) && /tankstelle|agrola|migrol |shell|avia|socar|tamoil| bp | eni /.test(p)) return 'Take-away';
       return cat;
     }
   }
@@ -413,7 +610,7 @@ function save() {
   if (typeof CLOUD !== 'undefined' && CLOUD.col) { markDirty(); schedulePush(); }
 }
 
-const UI = {tab: S.settings.tab || 'dash', month: nowYM(), q: '', fcat: '', fall: false};
+const UI = {tab: S.settings.tab || 'dash', month: nowYM(), q: '', fcat: '', fall: false, hero: 'month', open: false};
 let charts = [];
 
 /* ================= Berechnungen ================= */
@@ -565,7 +762,7 @@ function savingCapacity() {
 }
 function status(spent, budget) {
   if (!budget) return 'none';
-  const r = spent / budget; return r > 1 ? 'red' : r >= .8 ? 'orange' : 'green';
+  const r = spent / budget; return r > 1 ? 'red' : r >= (+(S.settings.prefs || {}).warnPct || 80) / 100 ? 'orange' : 'green';
 }
 const COL = {green:'var(--green)', orange:'var(--orange)', red:'var(--red)', none:'var(--muted)'};
 
@@ -810,9 +1007,10 @@ let PREVIEW = null;
 async function handleFiles(files) {
   if (!files || !files.length) return;
   const seen = {}; for (const t of S.tx) { const k = dupKey(t); seen[k] = (seen[k] || 0) + 1; }
-  const all = []; const errors = [];
+  const all = []; const errors = []; PENDING_DOCS = [];
   for (const file of files) {
     const ext = file.name.split('.').pop().toLowerCase();
+    const docId = 'd' + uid();
     try {
       let list = [];
       if (ext === 'pdf') { toast('PDF wird gelesen …'); list = await parsePDF(file); }
@@ -824,16 +1022,20 @@ async function handleFiles(files) {
           rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: false, dateNF: 'yyyy-mm-dd'}).map(r => r.map(c => String(c ?? '').trim())).filter(r => r.some(c => c));
         } else rows = parseCSV(await readText(file));
         const map = detectColumns(rows);
-        if (!map) { openMapping(rows, file.name, seen); continue; }
+        if (!map) { window._mapDoc = {id: docId, file}; openMapping(rows, file.name, seen); continue; }
         list = rowsToTx(rows, map);
       }
-      if (!list.length) { errors.push(file.name + ': keine Transaktionen gefunden'); continue; }
-      all.push(...markDuplicates(list, seen, file.name));
-    } catch (e) { console.error(e); errors.push(file.name + ': ' + e.message); }
+      if (!list.length) { errors.push(file.name + ': keine Transaktionen gefunden'); PENDING_DOCS.push({id: docId, file, months: []}); continue; }
+      PENDING_DOCS.push({id: docId, file, months: monthsOfList(list)});
+      all.push(...markDuplicates(list, seen, file.name).map(r => ({...r, docId})));
+    } catch (e) { console.error(e); errors.push(file.name + ': ' + e.message); PENDING_DOCS.push({id: docId, file, months: []}); }
   }
   if (errors.length) toast('⚠️ ' + errors.join(' · '), 6000);
   if (all.length) openPreview(all);
+  else if (PENDING_DOCS.length && !$('#modal').innerHTML) processPendingDocs();
 }
+// Monate (JJJJ-MM), für die eine Datei Buchungen enthält – daraus wird der Name des Kontoauszugs gebildet
+function monthsOfList(list) { return [...new Set(list.map(t => t.date.slice(0, 7)))].sort(); }
 function markDuplicates(list, seen, source) {
   const avail = {...seen}; const added = {};
   // vorläufige Buchungen (z. B. aus der Banking-App) ↔ definitive Buchungen (Kontoauszug):
@@ -841,19 +1043,25 @@ function markDuplicates(list, seen, source) {
   const used = new Set();
   const days = (a, b) => (new Date(a) - new Date(b)) / 86400000;
   const res = list.map(t => {
-    const k = dupKey(t); let dup = false, replaces = null;
+    const k = dupKey(t); let dup = false, replaces = null, repl = null;
+    // offene Buchungen = vorläufige (Banking-App) + selbst erfasste auf dem Zahlungskonto, die noch auf den Kontoauszug warten
+    const win = +P().matchDays || 7;
+    const isOpenManual = o => P().matchAuto && o.source === 'manuell' && !o.matched && (o.acct || mainAcctId()) === mainAcctId() && !(accByRole('cash') && o.acct === accByRole('cash').id);
+    const best = pred => S.tx.filter(o => !used.has(o) && pred(o) && Math.abs(o.amount - t.amount) < 0.005 && days(t.date, o.date) >= -2 && days(t.date, o.date) <= win)
+      .sort((a, b) => Math.abs(days(t.date, a.date)) - Math.abs(days(t.date, b.date)) || (merchantKey(b.desc) === merchantKey(t.desc)) - (merchantKey(a.desc) === merchantKey(t.desc)))[0];
     if (avail[k] > 0) { dup = true; avail[k]--; }
     else if (t.prov) {
-      const m = S.tx.find(o => !o.prov && !used.has(o) && Math.abs(o.amount - t.amount) < 0.005 && days(o.date, t.date) >= 0 && days(o.date, t.date) <= 6);
+      const m = S.tx.find(o => !o.prov && o.source !== 'manuell' && !used.has(o) && Math.abs(o.amount - t.amount) < 0.005 && days(o.date, t.date) >= 0 && days(o.date, t.date) <= 6);
       if (m) { dup = true; used.add(m); }
+      else { const mm = best(isOpenManual); if (mm) { replaces = mm.id; repl = mm; used.add(mm); } }
     } else {
-      const m = S.tx.find(o => o.prov && !used.has(o) && Math.abs(o.amount - t.amount) < 0.005 && days(t.date, o.date) >= 0 && days(t.date, o.date) <= 6);
-      if (m) { replaces = m.id; used.add(m); }
+      const m = best(o => o.prov || isOpenManual(o));
+      if (m) { replaces = m.id; repl = m; used.add(m); }
     }
     if (!dup) added[k] = (added[k] || 0) + 1;
     const old = replaces && S.tx.find(o => o.id === replaces);
-    const cat = old && old.manual ? old.cat : t.cat ? t.cat : (t.self || (old && old.cat === 'Sparen')) && !S.rules[merchantKey(t.desc)] ? 'Sparen' : categorize(t.desc, t.amount, t.ph);
-    return {date: t.date, desc: t.desc, amount: t.amount, source, dup, include: !dup, cat, prov: !!t.prov, replaces, manual: !!(old && old.manual), ph: t.ph || (old && old.ph) || undefined, note: t.note || (old && old.note), splits: old && old.splits, acct: old && old.acct};
+    const cat = old && (old.manual || old.source === 'manuell') ? old.cat : t.cat ? t.cat : (t.self || (old && old.cat === 'Sparen')) && !S.rules[merchantKey(t.desc)] ? 'Sparen' : categorize(t.desc, t.amount, t.ph);
+    return {date: t.date, desc: t.desc, amount: t.amount, source, dup, include: !dup, cat, prov: !!t.prov, replaces, replInfo: repl ? {desc: repl.desc, date: repl.date, own: repl.source === 'manuell'} : null, manual: !!(old && (old.manual || old.source === 'manuell')), ph: t.ph || (old && old.ph) || undefined, note: t.note || (old && old.note), splits: old && old.splits, acct: old && old.acct};
   });
   for (const [k, n] of Object.entries(added)) seen[k] = (seen[k] || 0) + n;
   return res;
@@ -873,7 +1081,7 @@ function renderPreview() {
       ${rows.map((r, i) => `<tr class="${r.dup ? 'dup' : ''}">
         <td><input type="checkbox" data-chg="pv-inc" data-i="${i}" ${r.include ? 'checked' : ''}></td>
         <td style="white-space:nowrap">${fmtDate(r.date)}</td>
-        <td class="desc" title="${esc(r.desc)}">${r.dup ? '<span class="pill orange">Duplikat</span> ' : ''}${r.replaces ? '<span class="pill green">ersetzt vorläufige</span> ' : ''}${r.prov && !r.dup ? '<span class="pill none">vorläufig</span> ' : ''}${esc(r.desc)}</td>
+        <td class="desc" title="${esc(r.desc)}">${r.dup ? '<span class="pill orange">Duplikat</span> ' : ''}${r.replaces ? (r.replInfo && r.replInfo.own ? `<span class="pill green" title="Deine Erfassung wird durch die Bankbuchung ersetzt – Kategorie und Notiz bleiben">✓ ersetzt deine Erfassung «${esc(r.replInfo.desc.slice(0, 24))}» vom ${shortDate(r.replInfo.date)}</span> ` : '<span class="pill green">ersetzt vorläufige</span> ') : ''}${r.prov && !r.dup ? '<span class="pill none">vorläufig</span> ' : ''}${esc(r.desc)}</td>
         <td style="text-align:right"><input type="number" step="0.05" value="${r.amount}" data-chg="pv-amt" data-i="${i}" style="color:${r.amount < 0 ? 'var(--red)' : 'var(--green)'}"></td>
         <td>${catSelect(r.cat, `class="cat" data-chg="pv-cat" data-i="${i}"`)}</td></tr>`).join('')}
       </tbody></table>
@@ -882,7 +1090,7 @@ function renderPreview() {
       <span class="small muted" style="margin-right:auto">Einnahmen <b class="pos">${chf(inc)}</b> · Ausgaben <b class="neg">${chf(-out)}</b></span>
       <button class="btn small" data-act="pv-sign" title="Falls Einnahmen/Ausgaben vertauscht sind">± Vorzeichen umkehren</button>
       <button class="btn" data-act="close">Abbrechen</button>
-      <button class="btn primary" data-act="pv-import" ${n ? '' : 'disabled'}>${n} importieren</button>
+      <button class="btn primary" data-act="pv-import" ${n || PENDING_DOCS.length ? '' : 'disabled'}>${n ? n + ' importieren' + (PENDING_DOCS.length ? ' & ablegen' : '') : 'Nur Dokument ablegen'}</button>
     </div>
   </div>`);
 }
@@ -905,14 +1113,14 @@ function openMapping(rows, name, seen) {
       </div>
       <label class="small" style="display:flex;gap:6px;margin-top:12px"><input type="checkbox" id="mp-head" checked> Erste Zeile ist Überschrift</label>
     </div>
-    <div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="map-apply">Weiter</button></div>
+    <div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn" data-act="map-doc-only" title="Keine Buchungen übernehmen, nur die Datei unter Dokumente ablegen">Nur als Dokument ablegen</button><button class="btn primary" data-act="map-apply">Weiter</button></div>
   </div>`);
 }
 
 /* ================= UI-Helfer ================= */
 function catSelect(value, attrs) { return `<select ${attrs}>${CAT_LIST.map(c => `<option value="${c}" ${c === value ? 'selected' : ''}>${CATS[c].icon} ${c}</option>`).join('')}</select>`; }
 function openModal(html) { $('#modal').innerHTML = `<div class="modal-bg" data-act="bg">${html}</div>`; }
-function closeModal() { $('#modal').innerHTML = ''; PREVIEW = null; }
+function closeModal() { $('#modal').innerHTML = ''; PREVIEW = null; if (window._askRes) { const f = window._askRes; window._askRes = null; f('cancel'); } }
 let toastTimer;
 function toast(msg, ms = 3200) {
   let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); }
@@ -939,12 +1147,14 @@ const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).
 // Anzeigename: TWINT-Kontakte mit Namen statt Nummer
 function txTitle(t) { const n = t.ph && S.contacts && S.contacts[t.ph]; return n ? t.desc.replace(/^TWINT-(Gutschrift|Belastung|Zahlung)/i, m => /gutschrift/i.test(m) ? 'TWINT von' : 'TWINT an') + ' ' + n : t.desc + (t.ph ? ' · ' + t.ph : ''); }
 function acctName(id) { const a = (S.accounts || []).find(a => a.id === id); return a ? a.name : ''; }
+// selbst erfasste Buchung auf dem Zahlungskonto, die noch nicht mit dem Kontoauszug abgeglichen wurde
+function isOpenOwn(t) { const cash = accByRole('cash'); return t.source === 'manuell' && !t.matched && !(cash && t.acct === cash.id) && (t.acct || mainAcctId()) === mainAcctId(); }
 function txRow(t, full) {
   const c = cinfo(t.cat);
   const amt = `<div class="a ${t.amount >= 0 ? 'pos' : ''}">${t.amount >= 0 ? '+' : '−'}${nf2.format(Math.abs(t.amount))}</div>`;
   const extra = `${t.splits && t.splits.length ? ' · <span class="pill none" style="padding:1px 6px">aufgeteilt</span>' : ''}${t.acct && acctName(t.acct) && t.acct !== mainAcctId() ? ' · ' + esc(acctName(t.acct)) : ''}${t.note ? ' · 📝 ' + esc(t.note) : ''}`;
   if (!full) return `<div class="tx" data-act="tx-edit" data-id="${t.id}" style="cursor:pointer"><div class="ic">${c.icon}</div><div class="d"><div class="t" title="${esc(txTitle(t))}">${esc(txTitle(t))}</div><div class="s">${fmtDate(t.date)} · ${esc(t.cat)}${extra}</div></div>${amt}</div>`;
-  return `<div class="tx txfull"><div class="ic">${c.icon}</div><div class="d" data-act="tx-edit" data-id="${t.id}" style="cursor:pointer"><div class="t" title="${esc(txTitle(t))}">${esc(txTitle(t))} <span class="muted small">✎</span></div><div class="s">${fmtDate(t.date)}${t.manual ? ' · manuell' : ''}${t.prov ? ' · <span class="warn">vorläufig</span>' : ''}${extra}</div></div>
+  return `<div class="tx txfull"><div class="ic">${c.icon}</div><div class="d" data-act="tx-edit" data-id="${t.id}" style="cursor:pointer"><div class="t" title="${esc(txTitle(t))}">${esc(txTitle(t))} <span class="muted small">✎</span></div><div class="s">${fmtDate(t.date)}${isOpenOwn(t) ? ' · <span class="warn" title="Wird beim Import des Kontoauszugs automatisch abgeglichen">✋ selbst erfasst – wartet auf Kontoauszug</span>' : t.manual ? ' · manuell' : ''}${t.prov ? ' · <span class="warn">vorläufig</span>' : ''}${extra}</div></div>
     <div class="catcell">${catSelect(t.cat, `class="cat" data-chg="tx-cat" data-id="${t.id}"`)}</div>${amt}
     <div class="delcell"><button class="icon-btn" data-act="tx-del" data-id="${t.id}" title="Löschen" style="width:28px;height:28px;font-size:13px">✕</button></div></div>`;
 }
@@ -956,9 +1166,12 @@ function render() {
   $('#mlabel').title = periodDay() === 1 ? '' : 'Lohnmonat ' + periodText(UI.month);
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === UI.tab));
   charts.forEach(c => c.destroy()); charts = [];
-  const v = {dash: viewDash, tx: viewTx, budget: viewBudget, goals: viewGoals, acc: viewAcc, tips: viewTips}[UI.tab] || viewDash;
+  const v = {dash: viewDash, tx: viewTx, budget: viewBudget, goals: viewGoals, acc: viewAcc, docs: viewDocs, tips: viewTips, set: viewSettings}[UI.tab] || viewDash;
+  const TITLES = {dash: 'Übersicht', tx: 'Buchungen', budget: 'Planen', goals: 'Sparen', acc: 'Konten', docs: 'Dokumente', tips: 'Einsichten', set: 'Einstellungen'};
+  if ($('#pageTitle')) $('#pageTitle').textContent = TITLES[UI.tab] || 'Übersicht';
+  document.title = (TITLES[UI.tab] || 'Übersicht') + ' · Mein Budget';
   $('#main').innerHTML = v();
-  if ($('#barc')) drawDashCharts();
+  if ($('#barc') || $('#pie') || $('#heroChart')) drawDashCharts();
   if ($('#txlist')) renderTxList();
 }
 function emptyImport() {
@@ -1016,7 +1229,136 @@ function pactMini(pi) {
     <a href="#" class="small" data-act="tab" data-tab="goals">Details & Monatsübersicht →</a>
   </div>`;
 }
+/* ===== Neue Übersicht ===== */
+const PREF_DEF = {name: '', accent: 'blau', compact: false, warnPct: 80, paceTol: 10, saveTarget: 20, matchAuto: true, matchDays: 7, fuelMax: 20, upDays: 21,
+  dash: {hero: true, kpi: true, up: true, bud: true, pact: true, acc: true, pie: true, recent: true}};
+function P() { const p = S.settings.prefs || {}; return {...PREF_DEF, ...p, dash: {...PREF_DEF.dash, ...(p.dash || {})}}; }
+function setPref(k, v) { S.settings.prefs = {...(S.settings.prefs || {}), [k]: v}; save(); applyPrefs(); }
+function applyPrefs() {
+  const p = P(), root = document.documentElement;
+  if (p.accent && p.accent !== 'blau') root.dataset.accent = p.accent; else root.removeAttribute('data-accent');
+  root.classList.toggle('compact', !!p.compact);
+  const nm = (p.name || '').trim() || 'Mein Budget';
+  const ini = nm.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  if ($('#meName')) { $('#meName').textContent = nm; $('#meAv').textContent = ini || 'MB'; $('#meSub').textContent = SB_USER ? (SB_USER.email || 'angemeldet') : 'nur dieses Gerät'; }
+}
+const fmtBig = n => { const neg = n < 0, a = Math.abs(Math.round(n * 100) / 100), int = Math.floor(a), dec = Math.round((a - int) * 100); return `<small>CHF</small>${neg ? '−' : ''}${nf0.format(int)}<span class="dec">.${pad(dec)}</span>`; };
+const MON_S = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
+const dShort = iso => { const [y, m, d] = iso.split('-').map(Number); return d + '. ' + MON_S[m - 1]; };
+const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+// Budget-Score 0–100: Budgets eingehalten, nicht im Minus, Sparen im Plan, Prognose positiv
+function budgetScore(f, st) {
+  const [ps, pe] = periodRange(UI.month); const today = isoLocal(new Date());
+  const timePct = Math.min(1, Math.max(0.05, (daysBetween(ps, today < pe ? today : pe) + 1) / Math.max(1, daysBetween(ps, pe))));
+  const buds = VAR_CATS.filter(c => +S.budgets[c] > 0);
+  let sB = 20;
+  if (buds.length) sB = 40 * sum(buds.map(c => { const r = (st.byCat[c] || 0) / S.budgets[c]; return r <= timePct + P().paceTol / 100 ? 1 : r <= 1 ? 0.6 : Math.max(0, 1 - (r - 1) * 2) * 0.4; })) / buds.length;
+  const sF = f.free >= 0 ? 25 : Math.max(0, 25 + f.free / Math.max(1, f.inc) * 100);
+  const pi = pactInfo();
+  const quote = f.inc > 0 ? Math.max(0, st.saved) / f.inc * 100 : 0;
+  const sS = pi ? ({green: 25, none: 20, orange: 14, red: 5})[pi.state] : Math.min(25, quote / Math.max(1, P().saveTarget) * 25);
+  const fc = payForecast(); const sP = fc ? (fc.end >= 0 ? 10 : 0) : 5;
+  return Math.round(Math.max(0, Math.min(100, sB + sF + sS + sP)));
+}
+function netWorthSeries() {
+  const acc = S.accounts || []; if (!acc.length) return null;
+  const now = sum(acc.map(acctBalance)); const pts = [];
+  const flows = S.tx.filter(t => !['save', 'transfer'].includes(cinfo(t.cat).type));
+  for (let i = 11; i >= 0; i--) { const ym = addMonths(nowYM(), -i); const [y, m] = ym.split('-').map(Number); const end = i === 0 ? isoLocal(new Date()) : isoLocal(new Date(y, m, 0));
+    pts.push({label: monthLabel(ym, true), v: Math.round((now - sum(flows.filter(t => t.date > end).map(t => t.amount))) * 100) / 100}); }
+  return {now, pts};
+}
+function heroSeries(f) {
+  const [ps, pe] = periodRange(UI.month); const today = isoLocal(new Date());
+  const end = dayBefore(pe); const days = daysBetween(ps, end) + 1; if (days < 2) return null;
+  const base = f.inc - f.fix - f.goals; const varTx = f.st.txs;
+  const spentUntil = d => sum(varTx.filter(t => t.date <= d).flatMap(partsOf).filter(p => cinfo(p.cat).type === 'var').map(p => -p.amount));
+  const labels = [], act = [], proj = [];
+  const lastActual = today < ps ? null : today > end ? end : today;
+  const perDay = lastActual ? spentUntil(lastActual) / Math.max(1, daysBetween(ps, lastActual) + 1) : 0;
+  for (let i = 0; i < days; i++) {
+    const d = isoLocal(new Date(new Date(ps).getTime() + i * 86400000 + 43200000));
+    labels.push(+d.slice(8, 10) + '.');
+    if (lastActual && d <= lastActual) { const v = base - spentUntil(d); act.push(v); proj.push(d === lastActual ? v : null); }
+    else { act.push(null); const from = lastActual ? base - spentUntil(lastActual) : base; const k = lastActual ? daysBetween(lastActual, d) : i + 1; proj.push(from - perDay * k); }
+  }
+  return {labels, act, proj, todayIdx: lastActual ? daysBetween(ps, lastActual) : -1};
+}
+function ringSvg(pct, color) {
+  const r = 22, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, pct));
+  return `<svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--track)" stroke-width="5"/><circle cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * v).toFixed(1)} ${c.toFixed(1)}"/></svg>`;
+}
+function upcomingItems() {
+  const today = isoLocal(new Date()); const lim = isoLocal(new Date(Date.now() + P().upDays * 86400000)); const cp = curPeriod();
+  const items = [...calendar(cp), ...calendar(addMonths(cp, 1))].filter(c => !c.tx && c.date >= today && c.date <= lim);
+  const seen = new Set(); return items.filter(c => { const k = c.name + c.date; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a, b) => a.date.localeCompare(b.date));
+}
 function viewDash() {
+  if (!S.tx.length) return emptyImport();
+  const p = P(), D = p.dash;
+  const f = freeFor(UI.month), st = f.st, cp = curPeriod(), cur = UI.month === cp;
+  const [ps, pe] = periodRange(UI.month); const endD = dayBefore(pe);
+  const prev = monthStats(addMonths(UI.month, -1)), fPrev = freeFor(addMonths(UI.month, -1));
+  const worth = UI.hero === 'worth' ? netWorthSeries() : null;
+  const status = f.free < 0 ? 'Du bist im Minus – jetzt bremsen, sonst reicht es nicht bis zum Lohn.' : f.inc > 0 && f.free < f.inc * 0.1 ? 'Knapp – plane die restlichen Tage gut.' : 'Alles im grünen Bereich.';
+  const fc = cur ? payForecast() : null; const pay = cur ? nextPayday() : null;
+  // Kennzahlen
+  const score = budgetScore(f, st), scoreLbl = score >= 85 ? 'Sehr gut' : score >= 70 ? 'Gut' : score >= 50 ? 'Okay' : 'Kritisch';
+  const quote = f.inc > 0 ? st.saved / f.inc * 100 : 0, quotePrev = fPrev.inc > 0 ? prev.saved / fPrev.inc * 100 : 0, dq = quote - quotePrev;
+  const dOut = prev.out > 0 ? (st.out - prev.out) / prev.out * 100 : 0;
+  const spentPct = st.inc > 0 ? Math.min(100, st.out / st.inc * 100) : 0, fixPct = st.out > 0 ? st.fix / st.out * 100 : 0;
+  const up = upcomingItems().slice(0, 5);
+  const timePct = Math.min(1, Math.max(0, (daysBetween(ps, isoLocal(new Date()) < pe ? isoLocal(new Date()) : endD) + 1) / Math.max(1, daysBetween(ps, pe))));
+  const buds = VAR_CATS.filter(c => +S.budgets[c] > 0).map(c => { const s = st.byCat[c] || 0, b = +S.budgets[c], r = s / b; const state = r > 1 ? 'red' : cur && r > timePct + p.paceTol / 100 ? 'orange' : 'green'; return {c, s, b, r, state}; })
+    .sort((a, b) => ({red: 0, orange: 1, green: 2})[a.state] - ({red: 0, orange: 1, green: 2})[b.state] || b.r - a.r);
+  const recent = [...S.tx].filter(t => inPeriod(t, UI.month)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  const pi = pactInfo();
+  const hero = !D.hero ? '' : `<div class="hero2">
+    <div class="h-top">
+      <div><div class="h-lbl">${worth ? 'Vermögen total · alle Konten' : isAuto() ? `Verfügbar bis ${dShort(endD)}${cur ? ' · nächster Lohn ' + wdDate(pe) : ''}` : `Verfügbar bis ${dShort(endD)}`}</div>
+        <div class="h-big ${!worth && f.free < 0 ? 'neg' : ''}">${fmtBig(worth ? worth.now : f.free)}</div>
+        <div class="h-sub">${worth ? `${(S.accounts || []).map(a => esc(a.name) + ' ' + chf0(acctBalance(a))).join(' · ')}` : status}</div></div>
+      ${(S.accounts || []).length ? `<div class="seg"><button class="${worth ? '' : 'on'}" data-act="hero-mode" data-m="month">Monat</button><button class="${worth ? 'on' : ''}" data-act="hero-mode" data-m="worth">Vermögen</button></div>` : ''}
+    </div>
+    <div class="h-chart"><canvas id="heroChart"></canvas></div>
+    <div class="h-foot">
+      ${worth ? `<span class="hchip">Vor 12 Monaten<b>${chf0(worth.pts[0].v)}</b></span><span class="hchip">Veränderung<b>${worth.now - worth.pts[0].v >= 0 ? '+' : '−'}${chf0(Math.abs(worth.now - worth.pts[0].v)).replace('CHF ', 'CHF ')}</b></span>`
+        : `<span class="hchip">Fixkosten<b>${chf0(f.fix)}</b></span><span class="hchip">Sparen<b>${chf0(f.goals)}</b></span><span class="hchip">Ausgaben<b>${chf0(st.vari)}</b></span>`}
+      <div class="hper"><button data-act="mprev" aria-label="Vorheriger Monat">‹</button><span>${isAuto() ? periodLabel(UI.month) : monthLabel(UI.month)}</span><button data-act="mnext" aria-label="Nächster Monat">›</button></div>
+    </div>
+    ${!worth && fc ? `<div class="hnote">🔮 ${esc(fc.name)}: heute ${chf(fc.now)} → am ${dShort(endD)} voraussichtlich <b>${chf(fc.end)}</b> (Ø ${chf(fc.perDay)}/Tag${fc.openFix ? `, offen ${chf(fc.openFix)} Fixkosten` : ''})${pay ? ` · Lohn in ${pay.days} ${pay.days === 1 ? 'Tag' : 'Tagen'}: +${chf0(pay.amount)}` : ''}</div>` : ''}
+    ${!f.p.income ? `<div class="hnote">💡 Erfasse Lohn und Fixkosten unter <a href="#" data-act="tab" data-tab="budget" style="color:#fff">Planen</a> – dann wird die Zahl genauer.</div>` : ''}
+  </div>`;
+  const kpis = !D.kpi ? '' : `<div class="kpis4">
+    <div class="kpi" data-act="score-info"><div class="kpi-h"><span class="kpi-ic">◔</span>Budget-Score<span class="muted" style="margin-left:auto">›</span></div>
+      <div style="display:flex;align-items:baseline;gap:8px"><div class="kpi-v">${score}<small>/100</small></div><span class="kpi-badge ${score >= 70 ? '' : score >= 50 ? 'mid' : 'bad'}" style="margin-left:auto">${scoreLbl}</span></div>
+      <div class="segbar">${[1, 2, 3, 4, 5].map(i => `<i class="${score >= i * 20 - 10 ? 'on' : ''}" style="${score >= i * 20 - 10 ? `background:${score >= 70 ? 'var(--green)' : score >= 50 ? 'var(--orange)' : 'var(--red)'}` : ''}"></i>`).join('')}</div></div>
+    <div class="kpi"><div class="kpi-h"><span class="kpi-ic">🐷</span>Sparquote${fPrev.inc > 0 ? `<span class="kpi-badge ${dq < 0 ? 'bad' : ''}">${dq >= 0 ? '↗' : '↘'} ${Math.abs(dq).toFixed(1)} Pp.</span>` : ''}</div>
+      <div class="kpi-v">${Math.round(quote)}<small>%</small></div>
+      <div class="bar" style="height:7px;position:relative"><i style="width:${Math.max(0, Math.min(100, quote))}%;background:${quote >= p.saveTarget ? 'var(--green)' : 'var(--orange)'}"></i></div>
+      <div class="kpi-s">Dein Ziel ${p.saveTarget} % · Vormonat ${Math.round(quotePrev)} %</div></div>
+    <div class="kpi"><div class="kpi-h"><span class="kpi-ic">↙</span>Einnahmen</div>
+      <div class="kpi-v" style="color:var(--green)">${st.inc >= 0 ? '+' : ''}${chf0(st.inc)}</div>
+      <div class="bar" style="height:7px"><i style="width:${spentPct}%;background:var(--green)"></i></div>
+      <div class="kpi-s">${Math.round(spentPct)} % davon ausgegeben</div></div>
+    <div class="kpi"><div class="kpi-h"><span class="kpi-ic">↗</span>Ausgaben${prev.out > 0 ? `<span class="kpi-badge ${dOut > 0 ? 'bad' : ''}">${dOut > 0 ? '↗' : '↘'} ${Math.abs(Math.round(dOut))} %</span>` : ''}</div>
+      <div class="kpi-v">${chf0(st.out)}</div>
+      <div class="bar" style="height:7px"><i style="width:${Math.min(100, fixPct)}%;background:var(--primary)"></i></div>
+      <div class="kpi-s">Fixkosten ${chf0(st.fix)} · ${Math.round(fixPct)} %</div></div>
+  </div>`;
+  const upCard = !D.up ? '' : `<div class="card"><h2>Bevorstehend <a class="r" href="#" data-act="tab" data-tab="budget">Alle</a></h2>
+    ${up.length ? up.map(c => { const dd = daysBetween(isoLocal(new Date()), c.date); return `<div class="up-row"><div class="up-av" style="${c.kind === 'in' ? 'background:var(--green-bg);color:var(--green)' : ''}">${esc((c.name || '?')[0].toUpperCase())}</div><div style="min-width:0"><div class="t">${esc(c.name)}</div><div class="s">${dd === 0 ? 'heute' : dd === 1 ? 'morgen' : `in ${dd} Tagen`}, ${dShort(c.date)}</div></div><div class="a ${c.amount > 0 ? 'pos' : ''}">${c.amount > 0 ? '+' : '−'}${chf(Math.abs(c.amount)).replace('CHF ', 'CHF ')}</div></div>`; }).join('')
+      : `<p class="muted small">In den nächsten ${p.upDays} Tagen ist nichts geplant. Lohn, Fixkosten und Sparen erfasst du unter <a href="#" data-act="tab" data-tab="budget">Planen</a>.</p>`}</div>`;
+  const budCard = !D.bud ? '' : `<div class="card"><h2>Budgets <a class="r" href="#" data-act="tab" data-tab="budget">Alle</a></h2>
+    ${buds.length ? buds.slice(0, 6).map(x => { const col = COL[x.state]; return `<div class="ring-row"><div class="ring">${ringSvg(x.r, col)}<b>${Math.round(x.r * 100)}</b></div><div style="min-width:0"><div class="t">${CATS[x.c].icon} ${esc(x.c)}</div><div class="s" style="color:${col}">${x.state === 'red' ? 'überschritten' : x.state === 'orange' ? 'zu schnell' : 'im Plan'}</div></div><div class="a"><b>${chf(x.s)}</b>von ${chf0(x.b)}</div></div>`; }).join('')
+      : `<p class="muted small">Noch kein Budget. Lass dir eins aus deinen bisherigen Ausgaben vorschlagen.</p><button class="btn primary" data-act="sug-open">✨ Budget vorschlagen</button>`}</div>`;
+  const pactCard = !D.pact ? '' : pi ? pactMini(pi) : `<div class="card"><h2>🔒 Sparvereinbarung</h2><p class="muted small">Hast du eine feste Abmachung, wie viel du bis wann sparen musst? Erfasse sie, und die App überwacht sie jeden Monat.</p><button class="btn primary" data-act="pact-edit">Vereinbarung erfassen</button></div>`;
+  const pieCard = !D.pie ? '' : `<div class="card"><h2>Ausgaben nach Kategorie <span class="r">${chf(st.out)}</span></h2>${st.out > 0 ? '<div class="chart-box"><canvas id="pie"></canvas></div>' : '<p class="muted">Keine Ausgaben in diesem Monat.</p>'}</div>`;
+  const recCard = !D.recent ? '' : `<div class="card"><h2>Letzte Buchungen <a class="r" href="#" data-act="tab" data-tab="tx">Alle</a></h2><div class="list">${recent.length ? groupedRows(recent, false) : '<p class="muted">Keine Buchungen in diesem Monat.</p>'}</div></div>`;
+  const pair = (a, b) => a && b ? `<div class="grid g2">${a}${b}</div>` : (a || b);
+  return `<div class="grid">${hero}${kpis}${pair(upCard, budCard)}${pair(pactCard, D.acc ? kontenCard() : '')}${pair(pieCard, recCard)}</div>`;
+}
+function viewDashOld() {
   if (!S.tx.length) return emptyImport();
   const f = freeFor(UI.month), st = f.st, cp = curPeriod(), cur = UI.month === cp, past = UI.month < cp;
   const nextStart = periodRange(UI.month)[1];
@@ -1176,13 +1518,30 @@ function groupedRows(list, full) {
 function drawDashCharts() {
   if (!window.Chart) return;
   const st = monthStats(UI.month); const text = css('--muted'), grid = css('--border');
-  Chart.defaults.font.family = 'system-ui,-apple-system,Segoe UI,Roboto,sans-serif'; Chart.defaults.color = text;
+  Chart.defaults.font.family = 'Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif'; Chart.defaults.color = text;
+  const hc = $('#heroChart');
+  if (hc) {
+    const ctx = hc.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 0, 190); g.addColorStop(0, 'rgba(94,234,212,.28)'); g.addColorStop(1, 'rgba(94,234,212,0)');
+    const opts = {maintainAspectRatio: false, animation: {duration: 500}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => ' ' + chf(c.raw)}}},
+      scales: {x: {grid: {display: false}, border: {display: false}, ticks: {color: 'rgba(255,255,255,.55)', maxTicksLimit: 7, autoSkip: true}}, y: {display: true, grid: {color: 'rgba(255,255,255,.07)'}, border: {display: false}, ticks: {color: 'rgba(255,255,255,.45)', maxTicksLimit: 4, callback: v => nf0.format(v)}}}, elements: {point: {radius: 0, hoverRadius: 5}}};
+    if (UI.hero === 'worth') {
+      const w = netWorthSeries();
+      if (w) charts.push(new Chart(hc, {type: 'line', data: {labels: w.pts.map(p => p.label), datasets: [{data: w.pts.map(p => p.v), borderColor: '#5eead4', backgroundColor: g, fill: true, tension: .35, borderWidth: 2.5, pointRadius: ctx2 => ctx2.dataIndex === w.pts.length - 1 ? 5 : 0, pointBackgroundColor: '#5eead4'}]}, options: opts}));
+    } else {
+      const s = heroSeries(freeFor(UI.month));
+      if (s) charts.push(new Chart(hc, {type: 'line', data: {labels: s.labels, datasets: [
+        {data: s.act, borderColor: '#5eead4', backgroundColor: g, fill: true, tension: .25, borderWidth: 2.5, spanGaps: false, pointRadius: c2 => c2.dataIndex === s.todayIdx ? 5 : 0, pointBackgroundColor: '#5eead4', pointBorderColor: '#0b1f4b', pointBorderWidth: 2},
+        {data: s.proj, borderColor: 'rgba(255,255,255,.55)', borderDash: [3, 5], borderWidth: 2, fill: false, tension: 0, pointRadius: 0}]}, options: opts}));
+    }
+  }
+  if (!$('#barc') && !$('#pie')) return;
   const pie = $('#pie');
   if (pie) {
     const ent = Object.entries(st.byCat).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     charts.push(new Chart(pie, {type: 'doughnut', data: {labels: ent.map(e => CATS[e[0]]?.icon + ' ' + e[0]), datasets: [{data: ent.map(e => Math.round(e[1] * 100) / 100), backgroundColor: ent.map(e => cinfo(e[0]).color), borderColor: css('--card'), borderWidth: 2}]},
       options: {maintainAspectRatio: false, cutout: '62%', plugins: {legend: {position: window.innerWidth < 500 ? 'bottom' : 'right', labels: {boxWidth: 10, boxHeight: 10, usePointStyle: true, padding: 10}}, tooltip: {callbacks: {label: c => ' ' + chf(c.raw) + ' (' + Math.round(c.raw / st.out * 100) + ' %)'}}}}}));
   }
+  if (!$('#barc')) return;
   const months = Array.from({length: 6}, (_, i) => addMonths(UI.month, i - 5)); const ms = months.map(monthStats);
   charts.push(new Chart($('#barc'), {type: 'bar', data: {labels: months.map(m => monthLabel(m, true)), datasets: [
       {label: 'Einnahmen', data: ms.map(s => Math.round(s.inc)), backgroundColor: css('--green'), borderRadius: 6, maxBarThickness: 28},
@@ -1197,7 +1556,8 @@ function viewTx() {
       <input class="inp" type="search" placeholder="🔍 Suchen (alle Monate) – z. B. twint mama, avec 10.90, kostgeld" value="${esc(UI.q)}" data-inp="q" autocapitalize="off" autocorrect="off" spellcheck="false">
       <select class="inp" data-chg="fcat" style="flex:0 1 180px"><option value="">Alle Kategorien</option>${CAT_LIST.map(c => `<option value="${c}" ${UI.fcat === c ? 'selected' : ''}>${CATS[c].icon} ${c}</option>`).join('')}</select>
       <label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap"><input type="checkbox" data-chg="fall" ${UI.fall ? 'checked' : ''}> Alle Monate</label>
-      <button class="btn" data-act="tx-new">＋ Manuell</button>
+      ${(() => { const n = S.tx.filter(t => isOpenOwn(t) || t.prov).length; return n ? `<label class="small" style="display:flex;gap:6px;align-items:center;white-space:nowrap" title="Selbst erfasste und vorläufige Buchungen, die beim nächsten Kontoauszug abgeglichen werden"><input type="checkbox" data-chg="fopen" ${UI.open ? 'checked' : ''}> Nur offene (${n})</label>` : ''; })()}
+      <button class="btn" data-act="tx-new">＋ Erfassen</button>
       <button class="btn" data-act="exp-csv">CSV</button>
       <button class="btn" data-act="exp-xlsx">Excel</button>
     </div>
@@ -1231,8 +1591,8 @@ function matchesSearch(t, q) {
 }
 function renderTxList() {
   const q = UI.q;
-  const all = UI.fall || !!q.trim();
-  const list = S.tx.filter(t => (all || inPeriod(t, UI.month)) && (!UI.fcat || t.cat === UI.fcat || (t.splits || []).some(x => x.c === UI.fcat)) && matchesSearch(t, q))
+  const all = UI.fall || !!q.trim() || UI.open;
+  const list = S.tx.filter(t => (all || inPeriod(t, UI.month)) && (!UI.open || isOpenOwn(t) || t.prov) && (!UI.fcat || t.cat === UI.fcat || (t.splits || []).some(x => x.c === UI.fcat)) && matchesSearch(t, q))
     .sort((a, b) => b.date.localeCompare(a.date) || a.desc.localeCompare(b.desc));
   const inc = sum(list.filter(t => t.amount > 0).map(t => t.amount)), out = sum(list.filter(t => t.amount < 0).map(t => t.amount));
   $('#txsum').innerHTML = `<b>${list.length}</b> Buchungen ${q.trim() ? '· Suche in allen Monaten' : all ? '' : '· ' + periodText(UI.month)} · Einnahmen <span class="pos">+${nf2.format(inc)}</span> · Ausgaben <span class="neg">−${nf2.format(-out)}</span>`;
@@ -1512,7 +1872,7 @@ function viewTips() {
   VAR_CATS.forEach(c => { const b = +S.budgets[c]; const s = st.byCat[c] || 0; if (b && s > b) tips.push({ic: '🔴', t: `Budget für ${c} überschritten`, p: `Du liegst <b>${chf(s - b)}</b> über deinem Budget von ${chf(b)}.`}); });
   const subs = subscriptions(); const subM = sum(subs.map(s => s.amount));
   if (subs.length) tips.push({ic: '🔁', t: `${subs.length} wiederkehrende Zahlungen: ${chf(subM)} pro Monat`, p: `Das sind <b>${chf0(subM * 12)} pro Jahr</b>. Kündige, was du nicht wirklich brauchst – siehe Liste unten.`});
-  return `${yearOverview()}<div class="grid g2" style="margin-top:16px">
+  return `<div class="grid g2" style="margin-bottom:16px">${compareCard()}<div class="card"><h2>Einnahmen vs. Ausgaben <span class="r">letzte 6 Monate</span></h2><div class="chart-box"><canvas id="barc"></canvas></div></div></div>${yearOverview()}<div class="grid g2" style="margin-top:16px">
     <div class="card" style="align-self:start"><h2>💡 Spartipps <span class="r">${periodLabel(UI.month)}</span></h2>
       ${tips.length ? tips.map(t => `<div class="tip"><div class="ic">${t.ic}</div><div><b>${t.t}</b><p>${t.p}</p></div></div>`).join('') : '<p class="muted">Keine Ausgaben in diesem Monat – nichts zu meckern! 🎉</p>'}
     </div>
@@ -1567,6 +1927,73 @@ function openGoalEdit(g) {
       <label class="f">Wunschdatum<input class="inp" id="e-date" type="date" value="${g.date || ''}"></label>
       <label class="f">Bereits gespart (CHF)<input class="inp" id="e-saved" type="number" value="${g.saved}"></label>
     </div><div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="goal-save" data-id="${g.id}">Speichern</button></div></div>`);
+}
+/* ---- Monatsvergleich: dieser vs. letzter Monat pro Kategorie ---- */
+function compareCard() {
+  const a = monthStats(UI.month), b = monthStats(addMonths(UI.month, -1));
+  const cats = CAT_LIST.filter(c => ['var', 'fix'].includes(CATS[c].type) && ((a.byCat[c] || 0) > 0.5 || (b.byCat[c] || 0) > 0.5))
+    .map(c => ({c, x: a.byCat[c] || 0, y: b.byCat[c] || 0})).sort((p, q) => Math.abs(q.x - q.y) - Math.abs(p.x - p.y));
+  const lA = isAuto() ? 'jetzt' : monthLabel(UI.month, true), lB = isAuto() ? 'vorher' : monthLabel(addMonths(UI.month, -1), true);
+  const row = (name, x, y, bold) => { const d = x - y; return `<div class="cmp-row"${bold ? ' style="font-weight:700;border-top:2px solid var(--text)"' : ''}><span>${name}</span><span style="text-align:right">${nf0.format(x)}</span><span style="text-align:right" class="muted">${nf0.format(y)}</span><span class="d ${d > 0.5 ? 'neg' : d < -0.5 ? 'pos' : 'muted'}">${d > 0.5 ? '▲ +' : d < -0.5 ? '▼ −' : ''}${Math.abs(d) > 0.5 ? nf0.format(Math.abs(d)) : '±0'}</span></div>`; };
+  return `<div class="card"><h2>Monatsvergleich <span class="r">${esc(isAuto() ? periodLabel(UI.month) : monthLabel(UI.month))} vs. davor</span></h2>
+    <div class="cmp-row small muted" style="border-top:0"><span>Kategorie</span><span style="text-align:right">${lA}</span><span style="text-align:right">${lB}</span><span style="text-align:right">Differenz</span></div>
+    ${cats.length ? cats.slice(0, 12).map(x => row(`${CATS[x.c].icon} ${esc(x.c)}`, x.x, x.y)).join('') + row('Total Ausgaben', a.out, b.out, true) + row('💼 Einnahmen', a.inc, b.inc) : '<p class="muted small">Noch keine Daten zum Vergleichen.</p>'}
+    <p class="small muted" style="margin-bottom:0">▲ rot = mehr ausgegeben als im Monat davor, ▼ grün = weniger.</p></div>`;
+}
+/* ---- Einstellungen (eigene Seite) ---- */
+const sw = (attrs, on) => `<label class="sw"><input type="checkbox" ${attrs} ${on ? 'checked' : ''}><i></i></label>`;
+const setRow = (title, sub, ctrl) => `<div class="set-row"><div class="lbl"><b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</div>${ctrl}</div>`;
+function viewSettings() {
+  const p = P(), sr = snusRule(), rules = Object.entries(S.rules), cfg = supaConfig(), bak = readDeviceBackup();
+  const ACC = {blau: '#2563eb', violet: '#7c3aed', gruen: '#059669', orange: '#ea580c', pink: '#db2777', grau: '#334155'};
+  const DL = {hero: 'Verfügbar & Verlauf', kpi: 'Kennzahlen (Score, Sparquote …)', up: 'Bevorstehend', bud: 'Budgets', pact: 'Sparvereinbarung', acc: 'Konten', pie: 'Ausgaben nach Kategorie', recent: 'Letzte Buchungen'};
+  const payDays = [...new Set(S.income.map(i => +i.day).filter(Boolean))];
+  return `<div class="set-grid">
+  <div class="grid" style="align-content:start">
+    <div class="card"><h2>👤 Profil & Darstellung</h2>
+      ${setRow('Name', 'Erscheint unten in der Seitenleiste', `<input class="inp" value="${esc(p.name)}" placeholder="z. B. Jan" data-chg="pref" data-k="name">`)}
+      ${setRow('Design', 'Hell, dunkel oder wie das Gerät', `<select class="inp" data-chg="theme-sel"><option value="auto" ${S.settings.theme === 'auto' ? 'selected' : ''}>Automatisch</option><option value="light" ${S.settings.theme === 'light' ? 'selected' : ''}>Hell</option><option value="dark" ${S.settings.theme === 'dark' ? 'selected' : ''}>Dunkel</option></select>`)}
+      ${setRow('Akzentfarbe', '', `<div class="accents">${Object.entries(ACC).map(([k, c]) => `<button class="${p.accent === k ? 'on' : ''}" style="background:${c}" data-act="accent" data-v="${k}" title="${k}" aria-label="Akzent ${k}"></button>`).join('')}</div>`)}
+      ${setRow('Kompakte Ansicht', 'Weniger Abstand, mehr auf einen Blick', sw('data-chg="pref" data-k="compact"', p.compact))}
+    </div>
+    <div class="card"><h2>🏠 Startseite</h2><p class="small muted" style="margin-top:0">Wähle, welche Bereiche auf der Übersicht erscheinen.</p>
+      ${Object.entries(DL).map(([k, l]) => setRow(l, '', sw(`data-chg="pref-dash" data-k="${k}"`, p.dash[k]))).join('')}
+    </div>
+    <div class="card"><h2>🧮 Budget & Planung</h2>
+      ${setRow('Budgetmonat', 'Von Lohn zu Lohn oder fester Tag', `<select class="inp" data-chg="period-day"><option value="lohn" ${isAuto() ? 'selected' : ''}>Lohneingang (automatisch)</option><option value="1" ${periodDay() === 1 ? 'selected' : ''}>1. (Kalendermonat)</option>${Array.from({length: 27}, (_, k) => k + 2).map(d => `<option value="${d}" ${periodDay() === d ? 'selected' : ''}>${d}.${payDays.includes(d) ? ' (Zahltag)' : ''}</option>`).join('')}</select>`)}
+      ${setRow('Warnung ab', 'Budget wird orange ab diesem Anteil', `<span style="display:flex;align-items:center;gap:6px"><input class="inp" type="number" min="50" max="100" step="5" value="${p.warnPct}" data-chg="pref" data-k="warnPct" style="min-width:80px;width:80px"> %</span>`)}
+      ${setRow('Tempo-Toleranz', '«zu schnell», wenn du mehr ausgibst als die Zeit erlaubt (+ Toleranz)', `<span style="display:flex;align-items:center;gap:6px"><input class="inp" type="number" min="0" max="50" step="5" value="${p.paceTol}" data-chg="pref" data-k="paceTol" style="min-width:80px;width:80px"> Pp.</span>`)}
+      ${setRow('Sparquote-Ziel', 'Anteil vom Einkommen, den du sparen willst', `<span style="display:flex;align-items:center;gap:6px"><input class="inp" type="number" min="0" max="90" step="1" value="${p.saveTarget}" data-chg="pref" data-k="saveTarget" style="min-width:80px;width:80px"> %</span>`)}
+      ${setRow('«Bevorstehend» zeigt', 'Wie weit im Voraus', `<span style="display:flex;align-items:center;gap:6px"><input class="inp" type="number" min="3" max="62" step="1" value="${p.upDays}" data-chg="pref" data-k="upDays" style="min-width:80px;width:80px"> Tage</span>`)}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn small" data-act="sug-open">✨ Budget vorschlagen</button><button class="btn small" data-act="tab" data-tab="budget">Einkommen & Fixkosten</button><button class="btn small" data-act="pact-edit">Sparvereinbarung</button></div>
+    </div>
+  </div>
+  <div class="grid" style="align-content:start">
+    <div class="card"><h2>📥 Import & Abgleich</h2>
+      ${setRow('Selbst erfasste Buchungen abgleichen', 'Beim Import des Kontoauszugs werden deine Erfassungen erkannt und ersetzt (gleicher Betrag, Datum passend) – Kategorie und Notiz bleiben', sw('data-chg="pref" data-k="matchAuto"', p.matchAuto))}
+      ${setRow('Zeitfenster', 'So viele Tage darf die Bankbuchung später sein', `<span style="display:flex;align-items:center;gap:6px"><input class="inp" type="number" min="1" max="30" value="${p.matchDays}" data-chg="pref" data-k="matchDays" style="min-width:80px;width:80px"> Tage</span>`)}
+      ${setRow('Tankstelle = Snack bis', 'Kleinere Beträge an Tankstellen zählen als Take-away', `<span style="display:flex;align-items:center;gap:6px">CHF <input class="inp" type="number" min="0" step="1" value="${p.fuelMax}" data-chg="pref" data-k="fuelMax" style="min-width:80px;width:80px"></span>`)}
+      <div class="set-row"><div class="lbl"><b>Snus-Regel</b><span>Einkäufe in diesen Läden ab Betrag = Snus</span></div>${sw('id="sn-on"', sr.on)}</div>
+      <div style="display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end"><label class="f">Läden<input class="inp" id="sn-shops" value="${esc(sr.shops)}"></label><label class="f">ab CHF<input class="inp" id="sn-min" type="number" step="0.05" value="${sr.min}"></label><button class="btn small" data-act="snus-save">Speichern</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn small" data-act="recat-all" title="Alle nicht von Hand gesetzten Buchungen nach den aktuellen Regeln neu einordnen">🔄 Alle neu zuordnen</button><button class="btn small" data-act="import">⬆ Kontoauszug importieren</button></div>
+    </div>
+    <div class="card"><h2>🧠 Gemerkte Regeln <span class="r">${rules.length}</span></h2>
+      ${rules.length ? `<div style="max-height:260px;overflow:auto">${rules.map(([k, c]) => `<div class="kv"><span>${k.startsWith('tel:') ? '👤 ' + esc(S.contacts[k.slice(4)] || k.slice(4)) : '«' + esc(k) + '»'} → ${cinfo(c).icon} ${esc(c)}</span><a href="#" data-act="rule-del" data-key="${esc(k)}">aufheben</a></div>`).join('')}</div>` : '<p class="small muted">Noch keine. Wenn du bei einer Buchung «Für alle übernehmen» wählst, erscheint die Regel hier.</p>'}
+    </div>
+    <div class="card"><h2>🏷️ Kategorien & Konten</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" data-act="cats-open">Kategorien verwalten</button><button class="btn small" data-act="acc-edit">Kontostände abgleichen</button><button class="btn small" data-act="tab" data-tab="acc">TWINT-Kontakte</button></div>
+    </div>
+    <div class="card"><h2>☁️ Synchronisation</h2>
+      ${SB_USER ? `<p class="small" style="margin:0 0 8px">Angemeldet als <b>${esc(SB_USER.email || '')}</b> – PC und iPhone werden abgeglichen.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${cfg && !cfg.fromFile ? '<button class="btn small" data-act="sync-code">📲 Code fürs iPhone</button>' : ''}<button class="btn small" data-act="lg-logout">Abmelden</button>${cfg && !cfg.fromFile ? '<button class="btn small danger" data-act="sync-reset">Verbindung entfernen</button>' : ''}</div>`
+        : cfg ? `<p class="small muted" style="margin:0 0 8px">Eingerichtet, aber nicht angemeldet.</p><button class="btn small primary" data-act="lg-open">Anmelden</button>` : `<p class="small muted" style="margin:0 0 8px">Daten nur auf diesem Gerät.</p><button class="btn small primary" data-act="sync-setup">Sync einrichten</button>`}
+    </div>
+    <div class="card"><h2>💾 Daten</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" data-act="exp-csv">📄 CSV</button><button class="btn small" data-act="exp-xlsx">📗 Excel</button><button class="btn small" data-act="backup">💾 Backup speichern</button><button class="btn small" data-act="restore">♻️ Backup laden</button><button class="btn small" data-act="doc-zip-all">🗂️ Alle Dokumente als ZIP</button></div>
+      <p class="small muted">Dokumente liegen nur auf dem Gerät, auf dem du sie abgelegt hast. Das ZIP ist deine Sicherung.</p>
+      ${bak && bak.S ? `<p class="small muted">Gerätesicherung vom ${new Date(bak.at).toLocaleString('de-CH')} vorhanden.</p><button class="btn small" data-act="bak-restore">Gerätesicherung wiederherstellen</button>` : ''}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><button class="btn small danger" data-act="wipe">🗑️ Alle Daten löschen</button></div>
+    </div>
+  </div></div>`;
 }
 /* ---- Auswertung: Kennzahlen & Jahresübersicht ---- */
 function yearOverview() {
@@ -1764,7 +2191,12 @@ const ACT = {
   import: () => $('#file').click(),
   demo: loadDemo,
   theme: () => { const cur = document.documentElement.dataset.theme; S.settings.theme = cur === 'dark' ? 'light' : 'dark'; save(); applyTheme(); },
-  settings: openSettings,
+  settings: () => { UI.tab = 'set'; render(); window.scrollTo(0, 0); },
+  'hero-mode': a => { UI.hero = a.dataset.m; render(); },
+  'score-info': () => openModal(`<div class="modal sm"><div class="modal-h"><h3>Budget-Score</h3><button class="icon-btn" data-act="close">✕</button></div><div class="modal-b">
+    <p style="margin-top:0">Der Score (0–100) zeigt, wie gut du diesen Monat im Plan bist:</p>
+    <div class="calc"><div class="kv"><span>Budgets eingehalten (auch im Tempo)</span><b>40</b></div><div class="kv"><span>Nicht im Minus</span><b>25</b></div><div class="kv"><span>Sparen im Plan / Sparquote</span><b>25</b></div><div class="kv"><span>Prognose bis zum Lohn positiv</span><b>10</b></div></div>
+    <p class="small muted">85+ sehr gut · 70+ gut · 50+ okay · darunter kritisch. Tempo-Toleranz und Sparquote-Ziel stellst du unter Einstellungen ein.</p></div></div>`),
   close: closeModal,
   bg: (a, e) => { if (e.target === a) closeModal(); },
   'confirm-yes': () => { const f = CONFIRM_FN; CONFIRM_FN = null; closeModal(); if (f) f(); },
@@ -1813,7 +2245,9 @@ const ACT = {
   backup: () => download('budget-backup_' + isoLocal(new Date()) + '.json', JSON.stringify(S, null, 1), 'application/json'),
   restore: () => $('#restoreFile').click(),
   wipe: () => askConfirm('Wirklich ALLE Daten löschen (Transaktionen, Budget, Sparziele) – auf allen deinen Geräten? Das kann nicht rückgängig gemacht werden. Mach vorher ein Backup.', 'Alles löschen', () => { const th = S.settings.theme; S = DEFAULT(); S.settings.theme = th; save(); render(); toast('Alle Daten gelöscht'); }),
-  'rule-del': a => { delete S.rules[a.dataset.key]; save(); openSettings(); },
+  'rule-del': a => { const n = removeRule(a.dataset.key); save(); if (UI.tab === 'set') render(); else openSettings(); toast(`Regel aufgehoben${n ? ` · ${n} Buchungen wieder automatisch` : ''}`); },
+  accent: a => { setPref('accent', a.dataset.v); render(); },
+  'recat-all': () => { const n = recategorizeAll(); save(); render(); toast(`${n} Buchungen neu zugeordnet (von Hand gesetzte bleiben)`); },
   'inc-add': () => { S.income.push({name: '', amount: 0, day: 25, freq: 'm'}); save(); render(); },
   'fix-add': () => { S.fixed.push({name: '', amount: 0, day: 1, freq: 'm'}); save(); render(); },
   'acc-edit': () => { window._acc = null; openAccEdit(); },
@@ -1906,10 +2340,11 @@ const ACT = {
     const rows = PREVIEW.filter(r => r.include); const skipped = PREVIEW.length - rows.length;
     const repl = new Set(rows.map(r => r.replaces).filter(Boolean));
     if (repl.size) S.tx = S.tx.filter(t => !repl.has(t.id));
-    for (const r of rows) { const t = {id: uid(), date: r.date, desc: r.desc, amount: r.amount, cat: r.cat, manual: !!r.manual, source: r.source}; if (r.prov) t.prov = true; if (r.ph) t.ph = r.ph; if (r.note) t.note = r.note; if (r.acct) t.acct = r.acct; if (r.splits && Math.abs(sum(r.splits.map(x => x.a))) <= Math.abs(r.amount) + 0.004) t.splits = JSON.parse(JSON.stringify(r.splits)); S.tx.push(t); }
+    for (const r of rows) { const t = {id: uid(), date: r.date, desc: r.desc, amount: r.amount, cat: r.cat, manual: !!r.manual, source: r.source}; if (r.docId) t.doc = r.docId; if (r.prov) t.prov = true; if (r.ph) t.ph = r.ph; if (r.note) t.note = r.note; if (r.acct) t.acct = r.acct; if (r.splits && Math.abs(sum(r.splits.map(x => x.a))) <= Math.abs(r.amount) + 0.004) t.splits = JSON.parse(JSON.stringify(r.splits)); S.tx.push(t); }
     const latest = rows.map(r => r.date).sort().pop();
     if (latest && !hasPeriodTx(UI.month)) UI.month = periodOf(latest);
     save(); closeModal(); render(); toast(`✅ ${rows.length} Transaktionen importiert${skipped ? `, ${skipped} übersprungen` : ''}`);
+    if (PENDING_DOCS.length) setTimeout(processPendingDocs, 400);
   },
   'map-apply': () => {
     const {rows, name, seen} = window._map; const v = id => +$(id).value;
@@ -1918,7 +2353,8 @@ const ACT = {
     if (!(map.debit >= 0 && map.credit >= 0)) map.debit = map.credit = -1;
     const list = rowsToTx(rows, map);
     if (!list.length) return toast('Mit dieser Zuordnung wurden keine Transaktionen gefunden');
-    openPreview(markDuplicates(list, seen, name));
+    const md = window._mapDoc; if (md) { PENDING_DOCS = PENDING_DOCS.filter(p => p.id !== md.id); PENDING_DOCS.push({id: md.id, file: md.file, months: monthsOfList(list)}); }
+    openPreview(markDuplicates(list, seen, name).map(r => ({...r, docId: md && md.id})));
   },
 };
 function moveGoal(id, dir) {
@@ -1928,6 +2364,9 @@ function moveGoal(id, dir) {
   if (dir > 0 && g.saved >= g.target) toast('🎉 Sparziel «' + g.name + '» erreicht!'); else toast(dir > 0 ? `${chf(v)} eingezahlt` : `${chf(v)} abgehoben`);
 }
 const CHG = {
+  fopen: el => { UI.open = el.checked; renderTxList(); },
+  pref: el => { const k = el.dataset.k; let v = el.type === 'checkbox' ? el.checked : el.value; if (el.type === 'number') v = +v; setPref(k, v); if (el.dataset.rerender) render(); toast('Gespeichert'); },
+  'pref-dash': el => { const p = P(); setPref('dash', {...p.dash, [el.dataset.k]: el.checked}); },
   'self-from': el => { S.settings.selfFrom = el.value || null; save(); render(); toast('Gespeichert'); },
   'contact-name': el => { S.contacts = {...(S.contacts || {})}; const v = el.value.trim(); if (v) S.contacts[el.dataset.ph] = v; else delete S.contacts[el.dataset.ph]; save(); toast(v ? `Kontakt gespeichert: ${v}` : 'Name entfernt'); },
   'contact-cat': el => {
@@ -2011,10 +2450,10 @@ mq.addEventListener?.('change', () => { if (S.settings.theme === 'auto') applyTh
 const APP_VER = 8;
 const CLOUD = {col: null, ready: false, last: {}, raw: {}, remote: {}, base: {}, dirty: new Set(), busy: false, again: false, state: 'local', blocked: false};
 function serializeDocs() {
-  const docs = {meta: {v: 1, appVer: APP_VER, rules: S.rules, income: S.income, fixed: S.fixed, budgets: S.budgets, goals: S.goals, theme: S.settings.theme, pact: S.pact || null, periodDay: periodDay(), snus: snusRule(), catVer: +S.settings.catVer || 0, pm: S.settings.pm || 0, accounts: S.accounts || [], accountsDate: S.accountsDate || null, cats: S.cats || {}, contacts: S.contacts || {}, selfFrom: S.settings.selfFrom || null}};
+  const docs = {meta: {v: 1, appVer: APP_VER, rules: S.rules, income: S.income, fixed: S.fixed, budgets: S.budgets, goals: S.goals, theme: S.settings.theme, pact: S.pact || null, periodDay: periodDay(), snus: snusRule(), catVer: +S.settings.catVer || 0, pm: S.settings.pm || 0, accounts: S.accounts || [], accountsDate: S.accountsDate || null, cats: S.cats || {}, contacts: S.contacts || {}, selfFrom: S.settings.selfFrom || null, prefs: S.settings.prefs || {}}};
   for (const t of S.tx) {
     const id = 'tx-' + t.date.slice(0, 7); const r = {i: t.id, d: t.date, s: t.desc, a: t.amount, c: t.cat, m: t.manual ? 1 : 0};
-    if (t.prov) r.p = 1; if (t.note) r.n = t.note; if (t.acct) r.k = t.acct; if (t.to) r.t = t.to; if (t.ph) r.ph = t.ph; if (t.splits && t.splits.length) r.sp = t.splits;
+    if (t.prov) r.p = 1; if (t.doc) r.dc = t.doc; if (t.note) r.n = t.note; if (t.acct) r.k = t.acct; if (t.to) r.t = t.to; if (t.ph) r.ph = t.ph; if (t.splits && t.splits.length) r.sp = t.splits;
     (docs[id] = docs[id] || {rows: []}).rows.push(r);
   }
   for (const id of Object.keys(CLOUD.last)) if (id.startsWith('tx-') && !docs[id]) docs[id] = {rows: []};
@@ -2027,7 +2466,7 @@ function buildState(docs) {
   DATA_VER++;
   for (const [id, d] of Object.entries(docs)) if (id.startsWith('tx-')) for (const r of (d.rows || [])) {
     const t = {id: r.i, date: r.d, desc: r.s, amount: r.a, cat: r.c, manual: !!r.m};
-    if (r.p) t.prov = true; if (r.n) t.note = r.n; if (r.k) t.acct = r.k; if (r.t) t.to = r.t; if (r.ph) t.ph = r.ph; if (r.sp) t.splits = JSON.parse(JSON.stringify(r.sp));
+    if (r.p) t.prov = true; if (r.dc) t.doc = r.dc; if (r.n) t.note = r.n; if (r.k) t.acct = r.k; if (r.t) t.to = r.t; if (r.ph) t.ph = r.ph; if (r.sp) t.splits = JSON.parse(JSON.stringify(r.sp));
     tx.push(t);
   }
   S.tx = tx; S.rules = meta.rules || {}; S.income = meta.income || []; S.fixed = meta.fixed || []; S.budgets = meta.budgets || {}; S.goals = meta.goals || [];
@@ -2037,6 +2476,8 @@ function buildState(docs) {
   S.settings.catVer = meta.catVer || 0; S.settings.pm = meta.pm || 0;
   S.accounts = meta.accounts || []; S.accountsDate = meta.accountsDate || null;
   S.cats = meta.cats || {}; S.contacts = meta.contacts || {}; S.settings.selfFrom = meta.selfFrom || null;
+  if (meta.prefs) S.settings.prefs = meta.prefs;
+  try { applyPrefs(); } catch (e) {}
   refreshCats();
 }
 function setSync(state) {
@@ -2183,7 +2624,7 @@ function supaCollection(client, uid) {
   };
 }
 function startSync(user) {
-  SB_USER = user;
+  SB_USER = user; try { applyPrefs(); } catch (e) {}
   CLOUD.col = supaCollection(SB, user.id);
   setSync('loading');
   const timer = setTimeout(() => { if (!CLOUD.ready) setSync('offline'); }, 10000);
@@ -2272,11 +2713,424 @@ Object.assign(ACT, {
   'lg-open': () => openLogin(),
 });
 
+/* ================= Dokumente =================
+   Dateien bleiben LOKAL auf diesem Gerät (IndexedDB im Browser) – sie werden nirgends hochgeladen.
+   meta: {id, name, ext, type, folder, year, month, months[], date, size, mime, uploaded, origName}
+   blobs: Originaldatei unter derselben id · kv: eigene Ordner, PIN */
+let PENDING_DOCS = [];
+const DOCS = {list: [], loaded: false, loading: false, folders: [], pin: null, unlocked: false, lockAt: 0, sel: new Set(), q: '', folder: '', year: '', type: '', sort: 'date'};
+const DOC_TYPES = {
+  'Kontoauszug': {folder: 'Kontoauszüge', mode: 'month', icon: '🏦'},
+  'Lohnabrechnung': {folder: 'Lohn', mode: 'month', icon: '💼'},
+  'Lohnausweis': {folder: 'Lohn', mode: 'year', icon: '📄'},
+  'Steuererklärung': {folder: 'Steuern', mode: 'year', icon: '🧾'},
+  'Steuerrechnung': {folder: 'Steuern', mode: 'date', icon: '🏛️'},
+  'Versicherungspolice': {folder: 'Versicherungen', mode: 'date', icon: '🛡️'},
+  'Vertrag': {folder: 'Verträge', mode: 'date', icon: '✍️'},
+  'Rechnung': {folder: 'Diverses', mode: 'date', icon: '💳'},
+  'Quittung': {folder: 'Diverses', mode: 'date', icon: '🧾'},
+  'Anderes': {folder: 'Diverses', mode: 'date', icon: '📎'},
+};
+const BASE_FOLDERS = ['Kontoauszüge', 'Lohn', 'Steuern', 'Versicherungen', 'Verträge', 'Diverses'];
+const FOLDER_ICON = {'Kontoauszüge': '🏦', 'Lohn': '💼', 'Steuern': '🏛️', 'Versicherungen': '🛡️', 'Verträge': '✍️', 'Diverses': '📦'};
+const MON_DE = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+const ym2 = ym => MON_DE[+ym.slice(5, 7) - 1] + '_' + ym.slice(2, 4);
+const extOf = n => ((String(n).match(/\.([a-z0-9]{1,5})$/i) || [])[1] || '').toLowerCase();
+const fullName = d => d.name + (d.ext ? '.' + d.ext : '');
+const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const MIME = {pdf: 'application/pdf', csv: 'text/csv', txt: 'text/plain', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', heic: 'image/heic', webp: 'image/webp', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xls: 'application/vnd.ms-excel', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+const allFolders = () => [...BASE_FOLDERS, ...DOCS.folders.filter(f => !BASE_FOLDERS.includes(f))];
+const docPath = d => d.folder + (d.folder === 'Kontoauszüge' && d.year ? '/' + d.year : '');
+function statementName(months) {
+  if (!months || !months.length) return null;
+  const a = months[0], b = months[months.length - 1];
+  if (a === b) return 'Kontoauszug_' + ym2(a);
+  if (a.slice(0, 4) === b.slice(0, 4)) return `Kontoauszug_${MON_DE[+a.slice(5) - 1]}-${MON_DE[+b.slice(5) - 1]}_${b.slice(2, 4)}`;
+  return `Kontoauszug_${ym2(a)}-${ym2(b)}`;
+}
+function docBaseName(type, v) {
+  const mode = (DOC_TYPES[type] || {}).mode || 'date';
+  if (mode === 'month' && v.month) return `${type}_${ym2(v.month)}`;
+  if (mode === 'year' && v.year) return `${type}_${v.year}`;
+  const d = v.date || isoLocal(new Date()); return `${type}_${d.slice(8, 10)}-${d.slice(5, 7)}-${d.slice(2, 4)}`;
+}
+function uniqueName(base, folder, exceptId) { let n = base, i = 2; while (DOCS.list.some(d => d.folder === folder && d.name.toLowerCase() === n.toLowerCase() && d.id !== exceptId)) n = base + '_' + (i++); return n; }
+const cleanName = s => String(s || '').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 80);
+
+/* ---- IndexedDB ---- */
+let _docDb = null;
+function docDb() {
+  if (_docDb) return Promise.resolve(_docDb);
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('mein-budget-dokumente', 1);
+    r.onupgradeneeded = () => { const db = r.result; db.createObjectStore('meta', {keyPath: 'id'}); db.createObjectStore('blobs'); db.createObjectStore('kv'); };
+    r.onsuccess = () => { _docDb = r.result; res(_docDb); }; r.onerror = () => rej(r.error);
+  });
+}
+const reqP = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function dbAll(store) { const db = await docDb(); return reqP(db.transaction(store).objectStore(store).getAll()); }
+async function dbGet(store, key) { const db = await docDb(); return reqP(db.transaction(store).objectStore(store).get(key)); }
+async function dbWrite(store, fn) { const db = await docDb(); const tx = db.transaction(store, 'readwrite'); fn(tx.objectStore(store)); return new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); }); }
+async function loadDocs() {
+  if (DOCS.loaded) return;
+  try {
+    DOCS.list = await dbAll('meta');
+    DOCS.folders = (await dbGet('kv', 'folders')) || [];
+    DOCS.pin = (await dbGet('kv', 'pin')) || null;
+  } catch (e) { console.error(e); toast('⚠️ Dokumentenspeicher nicht verfügbar (privates Fenster?)'); }
+  DOCS.loaded = true;
+}
+async function putDoc(meta, blob) {
+  await dbWrite('blobs', st => st.put(blob, meta.id));
+  await dbWrite('meta', st => st.put(meta));
+  DOCS.list = DOCS.list.filter(d => d.id !== meta.id).concat(meta);
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+async function updateDoc(meta) { await dbWrite('meta', st => st.put(meta)); DOCS.list = DOCS.list.map(d => d.id === meta.id ? meta : d); }
+async function removeDoc(id) { await dbWrite('meta', st => st.delete(id)); await dbWrite('blobs', st => st.delete(id)); DOCS.list = DOCS.list.filter(d => d.id !== id); DOCS.sel.delete(id); }
+async function docBlob(id) { return dbGet('blobs', id); }
+async function saveFolders() { await dbWrite('kv', st => st.put(DOCS.folders, 'folders')); }
+
+/* ---- Rückfragen als Promise (Ersetzen / Beide behalten, Monat wählen …) ---- */
+function ask(html) { return new Promise(res => { window._askRes = res; openModal(html); }); }
+async function askConflict(existing, newFull) {
+  return ask(`<div class="modal sm"><div class="modal-h"><h3>Gibt es schon</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b"><p style="margin-top:0">«<b>${esc(fullName(existing))}</b>» ist bereits abgelegt (hochgeladen am ${new Date(existing.uploaded).toLocaleDateString('de-CH')}).</p><p class="small muted">Was soll mit «${esc(newFull)}» passieren?</p></div>
+    <div class="modal-f"><button class="btn" data-act="ask" data-v="cancel">Nicht speichern</button><button class="btn" data-act="ask" data-v="keep">Beide behalten</button><button class="btn primary" data-act="ask" data-v="replace">Ersetzen</button></div></div>`);
+}
+async function askMonth(fname) {
+  const v = await ask(`<div class="modal sm"><div class="modal-h"><h3>Für welchen Monat gilt der Auszug?</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b"><p style="margin-top:0">In «<b>${esc(fname)}</b>» habe ich keine Buchungen mit Datum gefunden. Wähle den Monat, damit ich die Datei richtig benennen und ablegen kann.</p>
+      <label class="f">Monat<input class="inp" type="month" id="ask-month" value="${addMonths(nowYM(), -1)}"></label></div>
+    <div class="modal-f"><button class="btn" data-act="ask" data-v="cancel">Nicht ablegen</button><button class="btn primary" data-act="ask" data-v="__month">Ablegen</button></div></div>`);
+  return v && v !== 'cancel' ? v : null;
+}
+/* ---- Kontoauszüge nach dem Import ablegen ---- */
+async function processPendingDocs() {
+  await loadDocs();
+  let saved = 0; const names = [];
+  while (PENDING_DOCS.length) {
+    const p = PENDING_DOCS.shift();
+    let months = p.months || [];
+    if (!months.length) { const ym = await askMonth(p.file.name); if (!ym) continue; months = [ym]; }
+    const base = statementName(months), ext = extOf(p.file.name), year = months[months.length - 1].slice(0, 4);
+    let name = base, replaceId = null;
+    const existing = DOCS.list.find(d => d.type === 'Kontoauszug' && d.name.toLowerCase() === base.toLowerCase());
+    if (existing) {
+      const ch = await askConflict(existing, base + (ext ? '.' + ext : ''));
+      if (ch === 'cancel' || !ch) continue;
+      if (ch === 'replace') replaceId = existing.id; else name = uniqueName(base, 'Kontoauszüge');
+    }
+    const meta = {id: p.id, name, ext, type: 'Kontoauszug', folder: 'Kontoauszüge', year, month: months[months.length - 1], months, size: p.file.size, mime: p.file.type || MIME[ext] || '', uploaded: new Date().toISOString(), origName: p.file.name};
+    try {
+      await putDoc(meta, p.file);
+      if (replaceId) { const old = DOCS.list.find(d => d.id === replaceId); for (const t of S.tx) if (t.doc === replaceId || (old && !t.doc && t.source === old.origName)) t.doc = p.id; await removeDoc(replaceId); save(); }
+      saved++; names.push(fullName(meta));
+    } catch (e) { console.error(e); toast('⚠️ Konnte ' + p.file.name + ' nicht ablegen: ' + (e.message || e)); }
+  }
+  if (saved) toast(`📁 Abgelegt unter Dokumente: ${names.join(', ')}`, 5000);
+  if (UI.tab === 'docs') render();
+}
+
+/* ---- Eigene Dokumente hochladen: Art vorschlagen, Namen vorschlagen ---- */
+async function extractText(file) {
+  const ext = extOf(file.name);
+  try {
+    if (ext === 'pdf' && window.pdfjsLib) {
+      const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise; let t = '';
+      for (let i = 1; i <= Math.min(2, pdf.numPages); i++) { const tc = await (await pdf.getPage(i)).getTextContent(); t += tc.items.map(x => x.str).join(' ') + ' '; }
+      return t;
+    }
+    if (['txt', 'csv'].includes(ext)) return (await file.text()).slice(0, 20000);
+  } catch (e) { console.error(e); }
+  return '';
+}
+function suggestType(text, fname) {
+  const s = normalize(text + ' ' + fname);
+  if (/lohnausweis|certificat de salaire/.test(s)) return 'Lohnausweis';
+  if (/lohnabrechnung|lohnabr|salärabrechnung|salaerabrechnung|gehaltsabrechnung|lohnzettel|lohnblatt/.test(s)) return 'Lohnabrechnung';
+  if (/steuererklärung|steuererklaerung|steuerformular/.test(s)) return 'Steuererklärung';
+  if (/steuerrechnung|staats- und gemeindesteuer|direkte bundessteuer|provisorische rechnung/.test(s)) return 'Steuerrechnung';
+  if (/police|versicherungsnachweis|versicherungsausweis|prämienrechnung|praemienrechnung|versicherungsvertrag/.test(s)) return 'Versicherungspolice';
+  if (/kontoauszug|saldovortrag/.test(s)) return 'Kontoauszug';
+  if (/vertrag|mietvertrag|vereinbarung|lehrvertrag/.test(s)) return 'Vertrag';
+  if (/quittung|kassenbon|kaufbeleg|kassenzettel/.test(s)) return 'Quittung';
+  if (/rechnung|invoice|zahlbar bis|qr-rechnung|einzahlungsschein|zahlungsfrist/.test(s)) return 'Rechnung';
+  return 'Anderes';
+}
+function detectDocDates(text) {
+  const s = normalize(text); const full = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
+  const mm = {}, years = {}; let m;
+  const re = /(januar|februar|märz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember)\s+(20\d\d)/g;
+  while ((m = re.exec(s))) { const idx = m[1] === 'maerz' ? 2 : full.indexOf(m[1]); const k = m[2] + '-' + pad(idx + 1); mm[k] = (mm[k] || 0) + 2; }
+  const dates = [...s.matchAll(/\b(\d{1,2})\.(\d{1,2})\.(20\d\d)\b/g)].filter(x => +x[2] >= 1 && +x[2] <= 12 && +x[1] <= 31).map(x => x[3] + '-' + pad(+x[2]) + '-' + pad(+x[1]));
+  dates.forEach(d => { mm[d.slice(0, 7)] = (mm[d.slice(0, 7)] || 0) + 1; });
+  [...s.matchAll(/\b(20\d\d)\b/g)].forEach(x => { if (+x[1] >= 2000 && +x[1] <= 2100) years[x[1]] = (years[x[1]] || 0) + 1; });
+  const top = o => (Object.entries(o).sort((a, b) => b[1] - a[1])[0] || [])[0];
+  return {month: top(mm), year: top(years), date: dates[0]}; // erstes Datum im Text = meist das Dokumentdatum
+}
+async function openDocForm(file) {
+  toast('Dokument wird gelesen …', 1500);
+  const text = await extractText(file); const type = suggestType(text, file.name); const dd = detectDocDates(text);
+  const today = isoLocal(new Date());
+  window._df = {file, type, suggested: type, month: dd.month || addMonths(nowYM(), -1), year: dd.year || String(new Date().getFullYear()), date: dd.date || today, folder: DOC_TYPES[type].folder, name: '', customName: false, customFolder: false};
+  window._df.name = docBaseName(type, window._df);
+  renderDocForm();
+}
+function renderDocForm() {
+  const f = window._df, mode = (DOC_TYPES[f.type] || {}).mode, ext = extOf(f.file.name);
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>Dokument ablegen</h3><button class="icon-btn" data-act="df-cancel">✕</button></div>
+    <div class="modal-b" style="display:grid;gap:10px">
+      <div class="small muted">Datei: <b>${esc(f.file.name)}</b> · ${fmtSize(f.file.size)}</div>
+      <label class="f">Dokumentart${f.suggested !== 'Anderes' ? ` <span class="pill green" style="font-weight:600">Vorschlag: ${esc(f.suggested)}</span>` : ''}<select class="inp" id="df-type" data-chg="df">${Object.keys(DOC_TYPES).map(t => `<option ${t === f.type ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      ${mode === 'month' ? `<label class="f">Monat<input class="inp" type="month" id="df-month" value="${f.month}" data-chg="df"></label>` : ''}
+      ${mode === 'year' ? `<label class="f">Jahr (gilt fürs ganze Jahr)<input class="inp" type="number" id="df-year" min="2000" max="2100" value="${f.year}" data-chg="df"></label>` : ''}
+      ${mode === 'date' ? `<label class="f">Datum des Dokuments<input class="inp" type="date" id="df-date" value="${f.date}" data-chg="df"></label>` : ''}
+      <label class="f">Ordner<select class="inp" id="df-folder" data-chg="df">${allFolders().map(x => `<option ${x === f.folder ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+      <label class="f">Name (wird automatisch vorgeschlagen, du kannst ihn ändern)<div style="display:flex;align-items:center;gap:6px"><input class="inp" id="df-name" value="${esc(f.name)}" data-chg="df-name" autocomplete="off" autocapitalize="off" spellcheck="false"><span class="muted">.${esc(ext)}</span></div></label>
+      ${f.type === 'Kontoauszug' ? '<p class="small muted" style="margin:0">Tipp: Kontoauszüge, die du über «⬆ Import» einliest, werden automatisch abgelegt – und die Buchungen gleich übernommen.</p>' : ''}
+    </div>
+    <div class="modal-f"><button class="btn" data-act="df-cancel">Abbrechen</button><button class="btn primary" data-act="df-save">Speichern</button></div></div>`);
+}
+let DOC_QUEUE = [];
+async function nextDocInQueue() { const f = DOC_QUEUE.shift(); if (f) await openDocForm(f); else if (UI.tab === 'docs') render(); }
+
+/* ---- Fehlende Kontoauszüge ---- */
+function missingStatements() {
+  const covered = new Set(); DOCS.list.filter(d => d.type === 'Kontoauszug').forEach(d => (d.months && d.months.length ? d.months : [d.month]).forEach(m => m && covered.add(m)));
+  const first = [S.tx.map(t => t.date).sort()[0], ...DOCS.list.filter(d => d.type === 'Kontoauszug').map(d => (d.months || [d.month])[0])].filter(Boolean).sort()[0];
+  if (!first) return [];
+  const last = addMonths(nowYM(), -1); let m = first.slice(0, 7); const lim = addMonths(last, -11); if (m < lim) m = lim;
+  const out = []; for (; m <= last; m = addMonths(m, 1)) if (!covered.has(m)) out.push(m);
+  return out;
+}
+const linkedTx = d => d.type !== 'Kontoauszug' ? [] : S.tx.filter(t => t.doc === d.id || (!t.doc && d.origName && t.source === d.origName && (d.months || [d.month]).includes(t.date.slice(0, 7))));
+
+/* ---- Ansicht ---- */
+function docsVisible() {
+  const q = searchNorm(DOCS.q);
+  let list = DOCS.list.filter(d => (!DOCS.folder || docPath(d) === DOCS.folder || docPath(d).startsWith(DOCS.folder + '/'))
+    && (!DOCS.year || String(d.year || (d.date || d.uploaded || '').slice(0, 4)) === DOCS.year) && (!DOCS.type || d.type === DOCS.type)
+    && (!q || q.split(' ').every(w => searchNorm(fullName(d) + ' ' + d.type + ' ' + (d.origName || '')).includes(w))));
+  const key = d => d.month || d.date || (d.year ? d.year + '-12' : '') || d.uploaded;
+  const sorts = {date: (a, b) => String(key(b)).localeCompare(String(key(a))) || b.uploaded.localeCompare(a.uploaded), name: (a, b) => fullName(a).localeCompare(fullName(b), 'de'), type: (a, b) => a.type.localeCompare(b.type, 'de') || String(key(b)).localeCompare(String(key(a))), up: (a, b) => b.uploaded.localeCompare(a.uploaded)};
+  return list.sort(sorts[DOCS.sort] || sorts.date);
+}
+function docPeriodText(d) {
+  if (d.type === 'Kontoauszug' && d.months && d.months.length > 1) return monthLabel(d.months[0], true) + ' – ' + monthLabel(d.months[d.months.length - 1], true);
+  const mode = (DOC_TYPES[d.type] || {}).mode;
+  if (mode === 'month' && d.month) return monthLabel(d.month);
+  if (mode === 'year' && d.year) return d.year;
+  return d.date ? fmtDate(d.date) : '';
+}
+const docIcon = d => ({pdf: '📕', csv: '📊', xlsx: '📗', xls: '📗', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', webp: '🖼️', heic: '🖼️', txt: '📄', docx: '📘'})[d.ext] || '📄';
+function viewDocs() {
+  if (!DOCS.loaded) { if (!DOCS.loading) { DOCS.loading = true; loadDocs().then(() => { DOCS.loading = false; if (UI.tab === 'docs') render(); }); } return '<div class="card"><p class="muted">Dokumente werden geladen …</p></div>'; }
+  if (DOCS.pin && (!DOCS.unlocked || Date.now() > DOCS.lockAt)) { DOCS.unlocked = false;
+    return `<div class="card lock-card"><div style="font-size:42px">🔒</div><h2 style="justify-content:center">Dokumente gesperrt</h2><p class="muted small">Gib deine PIN ein, um deine Dokumente zu sehen.</p>
+      <input class="inp pin-in" type="password" inputmode="numeric" autocomplete="off" id="pin-in" placeholder="PIN" maxlength="12" data-enter="doc-unlock">
+      <div id="pin-msg" class="small" style="min-height:18px;margin-top:6px"></div><button class="btn primary" data-act="doc-unlock" style="justify-content:center">Entsperren</button></div>`; }
+  DOCS.lockAt = Date.now() + 10 * 60000;
+  const list = docsVisible(), missing = missingStatements();
+  const count = path => DOCS.list.filter(d => docPath(d) === path || docPath(d).startsWith(path + '/')).length;
+  const years = [...new Set(DOCS.list.filter(d => d.folder === 'Kontoauszüge' && d.year).map(d => d.year))].sort().reverse();
+  const allYears = [...new Set(DOCS.list.map(d => String(d.year || (d.date || d.uploaded || '').slice(0, 4))).filter(Boolean))].sort().reverse();
+  const fItem = (path, label, icon, n, sub) => `<div class="fold ${DOCS.folder === path ? 'on' : ''} ${sub ? 'sub' : ''}"><button data-act="doc-folder" data-f="${esc(path)}"><span>${icon}</span><span class="fl">${esc(label)}</span><span class="fc">${n}</span></button>${n ? `<button class="icon-btn fz" data-act="doc-zip-folder" data-f="${esc(path)}" title="${esc(label)} als ZIP herunterladen">⬇</button>` : ''}</div>`;
+  const tree = `${fItem('', 'Alle Dokumente', '🗂️', DOCS.list.length)}
+    ${allFolders().map(f => fItem(f, f, FOLDER_ICON[f] || '📁', count(f)) + (f === 'Kontoauszüge' ? years.map(y => fItem('Kontoauszüge/' + y, y, '📅', count('Kontoauszüge/' + y), true)).join('') : '')).join('')}
+    <button class="btn small" data-act="folder-add" style="margin-top:8px;width:100%;justify-content:center">＋ Ordner</button>`;
+  const custom = DOCS.folder && !BASE_FOLDERS.includes(DOCS.folder) && !DOCS.folder.includes('/');
+  const selN = DOCS.sel.size;
+  return `<div class="docs-wrap">
+    <aside class="card docs-tree">${tree}
+      <div class="docs-pin">${DOCS.pin ? `<button class="btn small" data-act="doc-lock">🔒 Jetzt sperren</button><button class="btn small" data-act="doc-pin">PIN ändern / entfernen</button>` : `<button class="btn small" data-act="doc-pin">🔐 PIN festlegen</button>`}</div>
+      <p class="small muted" style="margin:10px 2px 0">🔒 Dateien bleiben auf diesem Gerät und werden nicht hochgeladen.</p>
+    </aside>
+    <div class="grid" style="align-content:start;min-width:0">
+      ${missing.length ? `<div class="note orange" style="margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:200px">📭 ${missing.length === 1 ? `<b>Kontoauszug ${monthLabel(missing[0])} fehlt.</b>` : `<b>${missing.length} Kontoauszüge fehlen:</b> ${missing.slice(0, 6).map(m => monthLabel(m)).join(', ')}${missing.length > 6 ? ' …' : ''}`}</span><button class="btn small" data-act="import">⬆ Importieren</button></div>` : ''}
+      <div class="card">
+        <div class="docs-head"><h2 style="margin:0">${DOCS.folder ? esc(DOCS.folder.replace('/', ' › ')) : 'Alle Dokumente'} <span class="r">${list.length}</span></h2>
+          <div class="docs-head-btns">${custom ? `<button class="btn small" data-act="folder-ren">Umbenennen</button><button class="btn small danger" data-act="folder-del">Ordner löschen</button>` : ''}
+            <button class="btn small narrow-only" data-act="folder-add">＋ Ordner</button>
+            ${DOCS.folder && DOCS.list.some(d => docPath(d) === DOCS.folder || docPath(d).startsWith(DOCS.folder + '/')) ? `<button class="btn small narrow-only" data-act="doc-zip-folder" data-f="${esc(DOCS.folder)}">⬇ Ordner als ZIP</button>` : ''}
+            <button class="btn small narrow-only" data-act="${DOCS.pin ? 'doc-lock' : 'doc-pin'}">${DOCS.pin ? '🔒 Sperren' : '🔐 PIN'}</button>
+            <button class="btn primary" data-act="doc-upload">＋ Dokument hochladen</button></div></div>
+        <select class="inp docs-fsel" data-chg="doc-f"><option value="">🗂️ Alle Dokumente (${DOCS.list.length})</option>${allFolders().map(f => `<option value="${esc(f)}" ${DOCS.folder === f ? 'selected' : ''}>${FOLDER_ICON[f] || '📁'} ${esc(f)} (${count(f)})</option>` + (f === 'Kontoauszüge' ? years.map(y => `<option value="Kontoauszüge/${y}" ${DOCS.folder === 'Kontoauszüge/' + y ? 'selected' : ''}>   └ ${y} (${count('Kontoauszüge/' + y)})</option>`).join('') : '')).join('')}</select>
+        <div class="toolbar" style="margin-top:12px">
+          <input class="inp" type="search" placeholder="🔍 Dateiname suchen" value="${esc(DOCS.q)}" data-inp="docq" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <select class="inp" data-chg="doc-year" style="flex:0 1 120px"><option value="">Alle Jahre</option>${allYears.map(y => `<option ${DOCS.year === y ? 'selected' : ''}>${y}</option>`).join('')}</select>
+          <select class="inp" data-chg="doc-type" style="flex:0 1 170px"><option value="">Alle Arten</option>${Object.keys(DOC_TYPES).map(t => `<option ${DOCS.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+          <select class="inp" data-chg="doc-sort" style="flex:0 1 160px">${[['date', 'Sortieren: Datum'], ['name', 'Sortieren: Name'], ['type', 'Sortieren: Art'], ['up', 'Sortieren: Upload']].map(([v, l]) => `<option value="${v}" ${DOCS.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        </div>
+        ${selN ? `<div class="selbar"><b>${selN} ausgewählt</b><button class="btn small primary" data-act="doc-zip-sel">⬇ Als ZIP</button><button class="btn small" data-act="doc-move-sel">📁 Verschieben</button><button class="btn small danger" data-act="doc-del-sel">🗑 Löschen</button><button class="btn small" data-act="doc-sel-none">Auswahl aufheben</button></div>` : ''}
+        ${list.length ? `<div class="doc-list">
+          <div class="doc-row doc-hd"><label><input type="checkbox" data-chg="doc-sel-all" ${list.every(d => DOCS.sel.has(d.id)) ? 'checked' : ''}></label><span>Name</span><span>Art</span><span>Monat / Jahr</span><span>Hochgeladen</span><span style="text-align:right">Grösse</span><span></span></div>
+          ${list.map(d => `<div class="doc-row ${DOCS.sel.has(d.id) ? 'sel' : ''}">
+            <label><input type="checkbox" data-chg="doc-sel" data-id="${d.id}" ${DOCS.sel.has(d.id) ? 'checked' : ''}></label>
+            <button class="doc-name" data-act="doc-prev" data-id="${d.id}" title="Vorschau"><span class="di">${docIcon(d)}</span><span class="dn">${esc(fullName(d))}</span></button>
+            <span class="dm-type">${(DOC_TYPES[d.type] || {}).icon || '📎'} ${esc(d.type)}</span>
+            <span class="dm-per">${esc(docPeriodText(d))}</span>
+            <span class="dm-up">${new Date(d.uploaded).toLocaleDateString('de-CH')}</span>
+            <span class="dm-size">${fmtSize(d.size)}</span>
+            <span class="doc-act"><button class="icon-btn" data-act="doc-dl" data-id="${d.id}" title="Herunterladen">⬇</button><button class="icon-btn" data-act="doc-ren" data-id="${d.id}" title="Umbenennen">✎</button><button class="icon-btn" data-act="doc-move" data-id="${d.id}" title="Verschieben">📁</button><button class="icon-btn" data-act="doc-del" data-id="${d.id}" title="Löschen">🗑</button></span>
+            <span class="dm-mob">${esc(d.type)} · ${esc(docPeriodText(d))} · ${fmtSize(d.size)}</span>
+          </div>`).join('')}</div>`
+        : `<div class="empty" style="padding:30px 10px"><div class="e">🗂️</div><p class="muted">${DOCS.list.length ? 'Keine Dokumente für diese Auswahl.' : 'Noch keine Dokumente. Kontoauszüge, die du importierst, landen automatisch hier. Eigene Dokumente (Lohnabrechnung, Steuererklärung, Police …) lädst du mit «＋ Dokument hochladen» hoch.'}</p></div>`}
+      </div>
+    </div></div>`;
+}
+
+/* ---- Vorschau ---- */
+async function openDocPreview(id) {
+  const d = DOCS.list.find(x => x.id === id); if (!d) return;
+  openModal(`<div class="modal" style="width:min(1000px,100%)"><div class="modal-h"><h3 style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${docIcon(d)} ${esc(fullName(d))}</h3><button class="btn small" data-act="doc-dl" data-id="${d.id}" style="margin-left:auto">⬇ Herunterladen</button><button class="icon-btn" data-act="close" style="margin-left:4px">✕</button></div>
+    <div class="modal-b" id="doc-prev-body" style="background:var(--bg)"><p class="muted">Vorschau wird geladen …</p></div></div>`);
+  const body = $('#doc-prev-body'); const blob = await docBlob(id);
+  if (!blob) { body.innerHTML = '<p class="neg">Die Datei wurde auf diesem Gerät nicht gefunden.</p>'; return; }
+  try {
+    if (d.ext === 'pdf' && window.pdfjsLib) {
+      body.innerHTML = '';
+      const pdf = await pdfjsLib.getDocument({data: await blob.arrayBuffer()}).promise; const n = Math.min(pdf.numPages, 30);
+      for (let i = 1; i <= n; i++) {
+        if (!document.body.contains(body)) return;
+        const page = await pdf.getPage(i); const vp0 = page.getViewport({scale: 1});
+        const w = Math.max(280, body.clientWidth - 8); const scale = Math.min(2.2, w / vp0.width) * (window.devicePixelRatio || 1);
+        const vp = page.getViewport({scale}); const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; c.className = 'pdf-page';
+        body.appendChild(c); await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+      }
+      if (pdf.numPages > n) body.insertAdjacentHTML('beforeend', `<p class="muted small">… ${pdf.numPages - n} weitere Seiten – herunterladen, um alles zu sehen.</p>`);
+    } else if (/^(png|jpe?g|webp|gif)$/.test(d.ext)) {
+      const url = URL.createObjectURL(blob); body.innerHTML = `<img src="${url}" alt="${esc(fullName(d))}" style="max-width:100%;display:block;margin:auto;border-radius:10px">`;
+    } else if (['csv', 'txt'].includes(d.ext)) {
+      const t = await blob.text(); body.innerHTML = `<pre class="doc-pre">${esc(t.split(/\r?\n/).slice(0, 300).join('\n'))}</pre>`;
+    } else body.innerHTML = '<p class="muted">Für diesen Dateityp gibt es keine Vorschau. Lade die Datei herunter, um sie zu öffnen.</p>';
+  } catch (e) { console.error(e); body.innerHTML = '<p class="neg">Vorschau nicht möglich: ' + esc(e.message || e) + '</p>'; }
+}
+/* ---- Download & ZIP ---- */
+async function downloadDoc(id) { const d = DOCS.list.find(x => x.id === id); const b = d && await docBlob(id); if (!b) return toast('Datei nicht gefunden'); download(fullName(d), b, d.mime || 'application/octet-stream'); }
+async function zipDocs(docs, zipName) {
+  if (!docs.length) return toast('Keine Dokumente ausgewählt');
+  if (!window.JSZip) return toast('⚠️ ZIP-Funktion nicht geladen (Internetverbindung prüfen)');
+  toast(`ZIP wird erstellt (${docs.length} Dateien) …`, 3000);
+  const zip = new JSZip(); const used = new Set();
+  for (const d of docs) { const b = await docBlob(d.id); if (!b) continue; let p = docPath(d) + '/' + fullName(d), i = 2; while (used.has(p)) p = docPath(d) + '/' + d.name + '_' + (i++) + (d.ext ? '.' + d.ext : ''); used.add(p); zip.file(p, b); }
+  const out = await zip.generateAsync({type: 'blob', compression: 'DEFLATE'});
+  download(cleanName(zipName) + '.zip', out, 'application/zip');
+}
+/* ---- PIN ---- */
+async function pinHash(pin, salt) { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pin)); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+
+Object.assign(ACT, {
+  ask: a => { const f = window._askRes; window._askRes = null; const v = a.dataset.v === '__month' ? ($('#ask-month') || {}).value : a.dataset.v; $('#modal').innerHTML = ''; if (f) f(v); },
+  'doc-upload': () => $('#docFile').click(),
+  'map-doc-only': () => { const md = window._mapDoc; $('#modal').innerHTML = ''; if (md) { PENDING_DOCS = PENDING_DOCS.filter(p => p.id !== md.id); PENDING_DOCS.push({id: md.id, file: md.file, months: []}); window._mapDoc = null; processPendingDocs(); } },
+  'df-cancel': () => { window._df = null; closeModal(); nextDocInQueue(); },
+  'df-save': async () => {
+    const f = window._df; if (!f) return;
+    f.name = cleanName($('#df-name').value) || docBaseName(f.type, f);
+    const ext = extOf(f.file.name); let name = f.name, replaceId = null;
+    const ex = DOCS.list.find(d => d.folder === f.folder && d.name.toLowerCase() === name.toLowerCase());
+    if (ex) { const ch = await askConflict(ex, name + (ext ? '.' + ext : '')); if (ch === 'cancel' || !ch) { renderDocForm(); return; } if (ch === 'replace') replaceId = ex.id; else name = uniqueName(name, f.folder); }
+    const mode = (DOC_TYPES[f.type] || {}).mode;
+    const meta = {id: 'd' + uid(), name, ext, type: f.type, folder: f.folder, year: mode === 'year' ? String(f.year) : mode === 'month' ? f.month.slice(0, 4) : f.date.slice(0, 4), month: mode === 'month' ? f.month : null, months: mode === 'month' ? [f.month] : null, date: mode === 'date' ? f.date : null, size: f.file.size, mime: f.file.type || MIME[ext] || '', uploaded: new Date().toISOString(), origName: f.file.name};
+    try { await putDoc(meta, f.file); if (replaceId) await removeDoc(replaceId); window._df = null; closeModal(); toast(`📁 Gespeichert: ${fullName(meta)} → ${docPath(meta)}`); nextDocInQueue(); }
+    catch (e) { console.error(e); toast('⚠️ Speichern fehlgeschlagen: ' + (e.message || e), 6000); }
+  },
+  'doc-folder': a => { DOCS.folder = a.dataset.f; DOCS.sel.clear(); render(); },
+  'doc-prev': a => openDocPreview(a.dataset.id),
+  'doc-dl': a => downloadDoc(a.dataset.id),
+  'doc-zip-folder': a => { const f = a.dataset.f; zipDocs(DOCS.list.filter(d => !f || docPath(d) === f || docPath(d).startsWith(f + '/')), 'Dokumente_' + (f ? f.replace('/', '_') : 'alle') + '_' + isoLocal(new Date())); },
+  'doc-zip-sel': () => zipDocs(DOCS.list.filter(d => DOCS.sel.has(d.id)), 'Dokumente_Auswahl_' + isoLocal(new Date())),
+  'doc-zip-all': async () => { await loadDocs(); zipDocs(DOCS.list, 'Mein-Budget_Dokumente_' + isoLocal(new Date())); },
+  'doc-sel-none': () => { DOCS.sel.clear(); render(); },
+  'doc-ren': a => { const d = DOCS.list.find(x => x.id === a.dataset.id); if (!d) return;
+    openModal(`<div class="modal sm"><div class="modal-h"><h3>Umbenennen</h3><button class="icon-btn" data-act="close">✕</button></div><div class="modal-b"><label class="f">Neuer Name<div style="display:flex;align-items:center;gap:6px"><input class="inp" id="ren-in" value="${esc(d.name)}" autocomplete="off" autocapitalize="off" spellcheck="false"><span class="muted">.${esc(d.ext)}</span></div></label><div id="ren-msg" class="small"></div></div><div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="doc-ren-save" data-id="${d.id}">Speichern</button></div></div>`); },
+  'doc-ren-save': async a => { const d = DOCS.list.find(x => x.id === a.dataset.id); const n = cleanName($('#ren-in').value); if (!n) return;
+    if (DOCS.list.some(x => x.id !== d.id && x.folder === d.folder && x.name.toLowerCase() === n.toLowerCase())) { $('#ren-msg').innerHTML = '<span class="neg">In diesem Ordner gibt es schon eine Datei mit diesem Namen.</span>'; return; }
+    await updateDoc({...d, name: n}); closeModal(); render(); toast('Umbenannt'); },
+  'doc-move': a => openMove([a.dataset.id]),
+  'doc-move-sel': () => openMove([...DOCS.sel]),
+  'doc-move-save': async () => { const ids = window._mv || [], to = $('#mv-to').value;
+    for (const id of ids) { const d = DOCS.list.find(x => x.id === id); if (!d || d.folder === to) continue; await updateDoc({...d, folder: to, name: uniqueName(d.name, to, d.id)}); }
+    window._mv = null; DOCS.sel.clear(); closeModal(); render(); toast(`${ids.length} verschoben nach «${to}»`); },
+  'doc-del': a => deleteDocsFlow([a.dataset.id]),
+  'doc-del-sel': () => deleteDocsFlow([...DOCS.sel]),
+  'folder-add': () => openModal(`<div class="modal sm"><div class="modal-h"><h3>Neuer Ordner</h3><button class="icon-btn" data-act="close">✕</button></div><div class="modal-b"><label class="f">Name<input class="inp" id="fo-in" placeholder="z. B. Auto, Ausbildung, Wohnung" autocomplete="off"></label></div><div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="folder-add-save">Erstellen</button></div></div>`),
+  'folder-add-save': async () => { const n = cleanName($('#fo-in').value).replace(/\//g, '-'); if (!n) return; if (allFolders().some(f => f.toLowerCase() === n.toLowerCase())) return toast('Diesen Ordner gibt es schon'); DOCS.folders.push(n); await saveFolders(); DOCS.folder = n; closeModal(); render(); toast(`Ordner «${n}» erstellt`); },
+  'folder-ren': () => openModal(`<div class="modal sm"><div class="modal-h"><h3>Ordner umbenennen</h3><button class="icon-btn" data-act="close">✕</button></div><div class="modal-b"><label class="f">Neuer Name<input class="inp" id="fo-in" value="${esc(DOCS.folder)}" autocomplete="off"></label></div><div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="folder-ren-save">Speichern</button></div></div>`),
+  'folder-ren-save': async () => { const old = DOCS.folder, n = cleanName($('#fo-in').value).replace(/\//g, '-'); if (!n || n === old) return closeModal();
+    if (allFolders().some(f => f.toLowerCase() === n.toLowerCase())) return toast('Diesen Ordner gibt es schon');
+    DOCS.folders = DOCS.folders.map(f => f === old ? n : f); await saveFolders();
+    for (const d of DOCS.list.filter(x => x.folder === old)) await updateDoc({...d, folder: n});
+    DOCS.folder = n; closeModal(); render(); toast('Ordner umbenannt'); },
+  'folder-del': () => { const f = DOCS.folder; const n = DOCS.list.filter(d => d.folder === f).length;
+    askConfirm(`Ordner «${f}» löschen?${n ? ` Die ${n} Dokumente darin kommen nach «Diverses».` : ''}`, 'Ordner löschen', async () => {
+      for (const d of DOCS.list.filter(x => x.folder === f)) await updateDoc({...d, folder: 'Diverses', name: uniqueName(d.name, 'Diverses', d.id)});
+      DOCS.folders = DOCS.folders.filter(x => x !== f); await saveFolders(); DOCS.folder = ''; render(); toast('Ordner gelöscht'); }); },
+  'doc-pin': () => openModal(`<div class="modal sm"><div class="modal-h"><h3>${DOCS.pin ? 'PIN ändern' : 'PIN für Dokumente'}</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b" style="display:grid;gap:10px">
+      <p class="small muted" style="margin:0">Die PIN sperrt den Bereich «Dokumente» in dieser App auf diesem Gerät (nach 10 Minuten Pause und bei jedem Neustart). Sie verschlüsselt die Dateien nicht. Schütze dein Gerät deshalb zusätzlich mit Bildschirmsperre.</p>
+      ${DOCS.pin ? '<label class="f">Aktuelle PIN<input class="inp" type="password" inputmode="numeric" id="pin-old" autocomplete="off"></label>' : ''}
+      <label class="f">${DOCS.pin ? 'Neue PIN (leer lassen = PIN entfernen)' : 'Neue PIN (4–12 Ziffern)'}<input class="inp" type="password" inputmode="numeric" id="pin-new" autocomplete="off" maxlength="12"></label>
+      <label class="f">Neue PIN wiederholen<input class="inp" type="password" inputmode="numeric" id="pin-new2" autocomplete="off" maxlength="12"></label>
+      <div id="pin-set-msg" class="small"></div>
+    </div><div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="doc-pin-save">Speichern</button></div></div>`),
+  'doc-pin-save': async () => {
+    const msg = h => { $('#pin-set-msg').innerHTML = '<span class="neg">' + h + '</span>'; };
+    if (DOCS.pin) { const old = $('#pin-old').value; if ((await pinHash(old, DOCS.pin.salt)) !== DOCS.pin.hash) return msg('Die aktuelle PIN stimmt nicht.'); }
+    const a = $('#pin-new').value, b = $('#pin-new2').value;
+    if (!a && DOCS.pin) { await dbWrite('kv', st => st.delete('pin')); DOCS.pin = null; closeModal(); render(); return toast('PIN entfernt'); }
+    if (!/^\d{4,12}$/.test(a)) return msg('Bitte 4 bis 12 Ziffern eingeben.');
+    if (a !== b) return msg('Die beiden PINs stimmen nicht überein.');
+    const salt = uid() + uid(); const pin = {salt, hash: await pinHash(a, salt)};
+    await dbWrite('kv', st => st.put(pin, 'pin')); DOCS.pin = pin; DOCS.unlocked = true; DOCS.lockAt = Date.now() + 10 * 60000; closeModal(); render(); toast('🔐 PIN gespeichert');
+  },
+  'doc-unlock': async () => { const v = ($('#pin-in') || {}).value || ''; if (DOCS.pin && (await pinHash(v, DOCS.pin.salt)) === DOCS.pin.hash) { DOCS.unlocked = true; DOCS.lockAt = Date.now() + 10 * 60000; render(); } else { $('#pin-msg').innerHTML = '<span class="neg">Falsche PIN.</span>'; $('#pin-in').value = ''; $('#pin-in').focus(); } },
+  'doc-lock': () => { DOCS.unlocked = false; render(); },
+});
+function openMove(ids) {
+  if (!ids.length) return; window._mv = ids;
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>${ids.length === 1 ? 'Dokument' : ids.length + ' Dokumente'} verschieben</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b"><label class="f">Nach Ordner<select class="inp" id="mv-to">${allFolders().map(f => `<option>${esc(f)}</option>`).join('')}</select></label></div>
+    <div class="modal-f"><button class="btn" data-act="close">Abbrechen</button><button class="btn primary" data-act="doc-move-save">Verschieben</button></div></div>`);
+}
+async function deleteDocsFlow(ids) {
+  const docs = ids.map(id => DOCS.list.find(d => d.id === id)).filter(Boolean); if (!docs.length) return;
+  const txs = [...new Set(docs.flatMap(linkedTx))];
+  const label = docs.length === 1 ? `«${fullName(docs[0])}»` : `${docs.length} Dokumente`;
+  const v = await ask(`<div class="modal sm"><div class="modal-h"><h3>Löschen?</h3><button class="icon-btn" data-act="close">✕</button></div>
+    <div class="modal-b"><p style="margin-top:0">${esc(label)} wirklich löschen? Das kann nicht rückgängig gemacht werden.</p>
+      ${txs.length ? `<div class="note orange">Zu ${docs.length === 1 ? 'diesem Kontoauszug' : 'diesen Kontoauszügen'} gehören <b>${txs.length} Buchungen</b> in deinem Budget. Sollen diese ebenfalls entfernt werden?</div>` : ''}</div>
+    <div class="modal-f"><button class="btn" data-act="ask" data-v="cancel">Abbrechen</button>${txs.length ? `<button class="btn" data-act="ask" data-v="doc">Nur Dokument löschen</button><button class="btn danger" data-act="ask" data-v="all">Dokument + ${txs.length} Buchungen löschen</button>` : `<button class="btn danger" data-act="ask" data-v="doc">Löschen</button>`}</div></div>`);
+  if (v !== 'doc' && v !== 'all') return;
+  for (const d of docs) await removeDoc(d.id);
+  if (v === 'all') { const del = new Set(txs.map(t => t.id)); S.tx = S.tx.filter(t => !del.has(t.id)); save(); }
+  else { const gone = new Set(docs.map(d => d.id)); let ch = false; for (const t of S.tx) if (t.doc && gone.has(t.doc)) { delete t.doc; ch = true; } if (ch) save(); }
+  render(); toast(v === 'all' ? `Gelöscht: ${label} und ${txs.length} Buchungen` : `Gelöscht: ${label}`);
+}
+Object.assign(CHG, {
+  df: () => { const f = window._df; if (!f) return; const oldType = f.type;
+    f.type = $('#df-type').value; if ($('#df-month')) f.month = $('#df-month').value || f.month; if ($('#df-year')) f.year = $('#df-year').value || f.year; if ($('#df-date')) f.date = $('#df-date').value || f.date;
+    const fsel = $('#df-folder').value; if (f.type !== oldType && !f.customFolder) f.folder = DOC_TYPES[f.type].folder; else if (fsel !== f.folder) { f.folder = fsel; f.customFolder = true; }
+    if (!f.customName) f.name = docBaseName(f.type, f); else f.name = $('#df-name').value;
+    renderDocForm(); },
+  'df-name': el => { const f = window._df; if (f) { f.name = el.value; f.customName = true; } },
+  'doc-f': el => { DOCS.folder = el.value; DOCS.sel.clear(); render(); },
+  'doc-year': el => { DOCS.year = el.value; render(); },
+  'doc-type': el => { DOCS.type = el.value; render(); },
+  'doc-sort': el => { DOCS.sort = el.value; render(); },
+  'doc-sel': el => { if (el.checked) DOCS.sel.add(el.dataset.id); else DOCS.sel.delete(el.dataset.id); render(); },
+  'doc-sel-all': el => { const vis = docsVisible(); vis.forEach(d => el.checked ? DOCS.sel.add(d.id) : DOCS.sel.delete(d.id)); render(); },
+});
+document.addEventListener('input', e => { const el = e.target.closest('[data-inp="docq"]'); if (!el) return; DOCS.q = el.value; const pos = el.selectionStart; render(); const n = $('[data-inp="docq"]'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) {} } });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'pin-in') { e.preventDefault(); ACT['doc-unlock'](); } });
+$('#docFile').addEventListener('change', e => { DOC_QUEUE = [...e.target.files]; e.target.value = ''; nextDocInQueue(); });
+
 (function init() {
   if (migrateCats()) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   UI.month = curPeriod();
   if (S.tx.length && !hasPeriodTx(UI.month)) UI.month = periodOf(S.tx.map(t => t.date).sort().pop());
-  applyTheme(); render(); setSync('local');
+  applyPrefs(); applyTheme(); render(); setSync('local');
   initCloud();
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
