@@ -1,6 +1,6 @@
 // Offline-Speicher für «Mein Budget»: App und Bibliotheken werden zwischengespeichert.
 // Die App selbst wird immer zuerst frisch geladen (neue Version), offline aus dem Speicher.
-const CACHE = 'mein-budget-v13';
+const CACHE = 'mein-budget-v14';
 const APP = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
 const LIBS = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',

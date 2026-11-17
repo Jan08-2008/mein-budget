@@ -2846,10 +2846,24 @@ async function encKeyLoad() {
   if (!SB_USER) return;
   try { const k = await dbGet('kv', 'enckey'), u = await dbGet('kv', 'encuid'); ENC.key = k && u === SB_USER.id ? k : null; } catch (e) { ENC.key = null; }
 }
+// Supabase liefert bei fehlenden Dateien teils nur «{}» als Fehlertext → erst auflisten, dann gezielt laden
+function storageErr(e) {
+  const raw = (e && (e.message || e.error || (e.originalError && e.originalError.statusText))) || '';
+  const st = e && (e.statusCode || e.status || (e.originalError && e.originalError.status));
+  if (/bucket/i.test(raw)) return {code: 'bucket', text: 'Der Dateispeicher «dokumente» fehlt in Supabase.'};
+  if (/row-level security|policy|unauthori|403/i.test(raw) || +st === 403) return {code: 'policy', text: 'Keine Berechtigung im Dateispeicher – die Zugriffsregeln fehlen.'};
+  if (/fetch|network|failed to fetch|timeout/i.test(raw)) return {code: 'offline', text: 'Keine Verbindung zum Internet.'};
+  if (!raw || raw === '{}' ) return {code: 'unknown', text: 'Der Dateispeicher antwortet nicht wie erwartet.'};
+  return {code: 'other', text: raw};
+}
 async function checkRemoteKey() {
   if (!SB || !SB_USER) return null;
-  const {data, error} = await SB.storage.from(DOC_BUCKET).download(`${SB_USER.id}/keycheck.json`);
-  if (error) { if (/not.?found|404|object/i.test(error.message || '') && !/bucket/i.test(error.message || '')) return ENC.remote = false; if (/bucket/i.test(error.message || '')) { ENC.err = 'bucket'; return ENC.remote = null; } throw error; }
+  const st = SB.storage.from(DOC_BUCKET);
+  const {data: items, error: le} = await st.list(SB_USER.id, {limit: 1000});
+  if (le) { const x = storageErr(le); ENC.err = x.code === 'bucket' || x.code === 'unknown' ? 'bucket' : x.text; return ENC.remote = null; }
+  if (!(items || []).some(o => o.name === 'keycheck.json')) return ENC.remote = false;
+  const {data, error} = await st.download(`${SB_USER.id}/keycheck.json`);
+  if (error) { const x = storageErr(error); ENC.err = x.code === 'bucket' ? 'bucket' : x.text; return ENC.remote = null; }
   return ENC.remote = JSON.parse(await data.text());
 }
 let _docSyncT = null;
@@ -2891,7 +2905,7 @@ async function docsSyncNow() {
     setDocSync('ok');
   } catch (e) {
     console.error(e);
-    const msg = e && e.message || String(e);
+    const x = storageErr(e); const msg = x.code === 'unknown' || x.code === 'bucket' ? 'bucket: ' + x.text : x.text;
     setDocSync('err', /bucket/i.test(msg) ? 'Dateispeicher fehlt: Skript supabase-dokumente.sql in Supabase ausführen' : /decrypt|operation/i.test(msg) ? 'Entschlüsseln fehlgeschlagen – falsches Passwort?' : msg);
     if (/bucket/i.test(msg)) ENC.err = 'bucket';
   } finally {
@@ -2910,8 +2924,11 @@ function encCard() {
   if (!SB_USER) return supaConfig() ? '<div class="note blue" style="margin:0">☁️ Melde dich an, damit deine Dokumente verschlüsselt auf allen Geräten verfügbar sind.</div>' : '';
   if (ENC.key) return ENC.err === 'bucket' ? `<div class="note red" style="margin:0">⚠️ Der Dateispeicher in Supabase fehlt noch. Führe einmal das Skript <b>supabase-dokumente.sql</b> im SQL Editor aus (siehe Anleitung), dann <a href="#" data-act="enc-retry">erneut versuchen</a>.</div>` : '';
   if (ENC.later) return '';
-  if (!ENC.checked) { ENC.checked = true; checkRemoteKey().catch(e => { console.error(e); ENC.err = /bucket/i.test(e.message || '') ? 'bucket' : (e.message || 'Fehler'); }).finally(() => { if (UI.tab === 'docs') render(); }); return '<div class="card"><p class="muted small" style="margin:0">☁️ Prüfe Dokumenten-Verschlüsselung …</p></div>'; }
-  if (ENC.err === 'bucket') return `<div class="note red" style="margin:0">⚠️ Für Dokumente auf allen Geräten fehlt in Supabase noch der Dateispeicher. Führe einmal das Skript <b>supabase-dokumente.sql</b> im SQL Editor aus (siehe Anleitung), dann <a href="#" data-act="enc-retry">erneut versuchen</a>.</div>`;
+  if (!ENC.checked) { ENC.checked = true; checkRemoteKey().catch(e => { console.error(e); const x = storageErr(e); ENC.err = x.code === 'bucket' || x.code === 'unknown' ? 'bucket' : x.text; }).finally(() => { if (UI.tab === 'docs') render(); }); return '<div class="card"><p class="muted small" style="margin:0">☁️ Prüfe Dokumenten-Verschlüsselung …</p></div>'; }
+  if (ENC.err === 'bucket') return `<div class="card enc-card"><h2>☁️ Noch ein Schritt in Supabase</h2>
+      <p class="small" style="margin-top:0">Damit deine Dokumente verschlüsselt auf allen Geräten verfügbar sind, braucht Supabase einen privaten Dateispeicher. Das geht einmalig in 1 Minute:</p>
+      <ol class="small" style="margin:0 0 10px;padding-left:20px;line-height:1.7"><li>Auf <b>supabase.com</b> dein Projekt öffnen → links <b>SQL Editor</b> → <b>New query</b></li><li>Den Inhalt der Datei <b>supabase-dokumente.sql</b> (im Ordner «Mein Budget App») einfügen → <b>Run</b></li><li>Hier auf <b>«Erneut prüfen»</b> klicken</li></ol>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="enc-retry">Erneut prüfen</button><button class="btn" data-act="enc-later">Später</button></div></div>`;
   if (ENC.remote) return `<div class="card enc-card"><h2>🔐 Dokumente auf diesem Gerät freischalten</h2>
       <p class="small muted" style="margin-top:0">Deine Dokumente sind verschlüsselt gespeichert. Gib einmal dein <b>Dokumenten-Passwort</b> ein – danach merkt sich dieses Gerät den Schlüssel, und im Alltag reicht die PIN.</p>
       <div class="enc-row"><input class="inp" type="password" id="enc-pw" placeholder="Dokumenten-Passwort" autocomplete="current-password" data-enter="enc-unlock"><button class="btn primary" data-act="enc-unlock">Freischalten</button></div>
@@ -2946,7 +2963,7 @@ Object.assign(ACT, {
       ENC.key = key; ENC.remote = kc; await loadDocs();
       render(); toast('🔐 Verschlüsselung eingerichtet – deine Dokumente werden jetzt hochgeladen.', 5000); docsSyncNow();
       if (!DOCS.pin) setTimeout(() => toast('Tipp: Lege noch eine PIN fest, damit «Dokumente» im Alltag schnell gesperrt ist.', 6000), 5200);
-    } catch (e) { console.error(e); msg(/bucket/i.test(e.message || '') ? 'Der Dateispeicher fehlt in Supabase – zuerst supabase-dokumente.sql ausführen.' : 'Fehler: ' + esc(e.message || e)); }
+    } catch (e) { console.error(e); const x = storageErr(e); msg(x.code === 'bucket' || x.code === 'unknown' || x.code === 'policy' ? x.text + ' Bitte zuerst supabase-dokumente.sql in Supabase ausführen.' : 'Fehler: ' + esc(x.text)); }
   },
   'enc-unlock': async () => {
     const pw = $('#enc-pw').value, m = $('#enc-msg'); if (!pw) return;
